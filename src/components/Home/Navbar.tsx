@@ -104,7 +104,7 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
           </button>
 
           <Link to="/" className="flex items-center gap-2 group h-full">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-brand-accent/30 bg-white flex-shrink-0 shadow-sm flex items-center justify-center overflow-hidden transition-all duration-500">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-500">
                {LOGO_URL ? (
                  <img 
                    src={LOGO_URL} 
@@ -117,13 +117,11 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
                  </div>
                )}
             </div>
-            {!LOGO_URL && (
-              <div className="flex flex-col justify-center min-w-0">
-                <span className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap leading-none">
-                  Riya Cosmetics
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col justify-center min-w-0">
+              <span className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap leading-none">
+                Riya Cosmetics
+              </span>
+            </div>
           </Link>
         </div>
 

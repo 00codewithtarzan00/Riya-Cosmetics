@@ -34,6 +34,7 @@
         "logoUrl": { "type": "string", "format": "url" },
         "heroImageUrl": { "type": "string", "format": "url" },
         "aboutText": { "type": "string" },
+        "categories": { "type": "array", "items": { "type": "string" } },
         "categoryImages": { "type": "object", "description": "Mapping of category names to image URLs" },
         "allCategoriesImageUrl": { "type": "string", "format": "url" }
       }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { subscribeToConfig, updateConfig } from '../../services/dataService';
 import { StoreConfig } from '../../types';
-import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { auth } from '../../firebase';
 
 export default function SettingsManager() {
   const [config, setConfig] = useState<StoreConfig>({
@@ -14,6 +15,7 @@ export default function SettingsManager() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showCategorySettings, setShowCategorySettings] = useState(false);
+  const [isFirebaseAuthed, setIsFirebaseAuthed] = useState(!!auth.currentUser);
   
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
@@ -21,15 +23,24 @@ export default function SettingsManager() {
   const categoryFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const [newCategoryName, setNewCategoryName] = useState('');
-
+  
   useEffect(() => {
-    return subscribeToConfig((data) => {
+    const unsubAuth = auth.onAuthStateChanged(user => {
+      setIsFirebaseAuthed(!!user);
+    });
+
+    const unsubConfig = subscribeToConfig((data) => {
       setConfig({
         ...data,
         categories: data.categories || [],
         categoryImages: data.categoryImages || {}
       });
     });
+
+    return () => {
+      unsubAuth();
+      unsubConfig();
+    };
   }, []);
 
   const addCategory = () => {
@@ -103,6 +114,16 @@ export default function SettingsManager() {
       <header className="mb-8 border-b border-brand-border pb-4">
         <h1 className="text-3xl font-display font-bold text-brand-accent">Global Settings</h1>
         <p className="text-sm text-brand-muted mt-1">Customize your storefront branding and message.</p>
+        
+        {!isFirebaseAuthed && (
+          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3 animate-fade-in">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-800 leading-relaxed">
+              <p className="font-bold mb-1">Database Connection Limited</p>
+              <p>You are logged in with a local password, but your Firebase session is inactive. To save these settings permanently to the database, please <strong>Sign in with Google</strong> in the Admin login section.</p>
+            </div>
+          </div>
+        )}
       </header>
 
       <form onSubmit={handleSave} className="bg-white editorial-card overflow-hidden max-w-2xl">
