@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == "tarzanmaurya1234@gmail.com" && 
+             request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Validation helpers
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price', 'category', 'available', 'createdAt']) &&
+             data.keys().size() <= 10 && // Allow for optional fields like description, imageUrl, mrp, isSpecial
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.price is number && data.price >= 0 &&
+             data.category is string && data.category.size() > 0 &&
+             data.available is bool &&
+             data.createdAt is number &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1000)) &&
+             (!('mrp' in data) || (data.mrp is number)) &&
+             (!('isSpecial' in data) || (data.isSpecial is bool));
+    }
+
+    function isValidNotice(data) {
+      return data.keys().hasAll(['title', 'content', 'createdAt']) &&
+             data.keys().size() == 3 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 5000 &&
+             data.createdAt is number;
+    }
+
+    function isValidConfig(data) {
+      return data.keys().hasOnly(['logoUrl', 'heroImageUrl', 'aboutText', 'categoryImages', 'allCategoriesImageUrl']) &&
+             (!('logoUrl' in data) || data.logoUrl is string) &&
+             (!('heroImageUrl' in data) || data.heroImageUrl is string) &&
+             (!('aboutText' in data) || data.aboutText is string) &&
+             (!('categoryImages' in data) || data.categoryImages is map) &&
+             (!('allCategoriesImageUrl' in data) || data.allCategoriesImageUrl is string);
+    }
+
+    // Collection matches
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidProduct(incoming());
+      allow update: if isAdmin() && isValidProduct(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'price', 'description', 'category', 'imageUrl', 'available', 'mrp', 'isSpecial'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidNotice(incoming());
+      allow update: if isAdmin() && isValidNotice(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /config/global {
+      allow read: if true;
+      allow write: if isAdmin() && isValidConfig(incoming());
+    }
+  }
+}
+

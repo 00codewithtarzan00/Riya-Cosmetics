@@ -1,0 +1,94 @@
+import React, { useState, useEffect } from 'react';
+import Navbar from './Navbar';
+import { Mail, Clock } from 'lucide-react';
+import { motion } from 'motion/react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { StoreConfig } from '../../types';
+
+interface ContactProps {
+  config: StoreConfig;
+}
+
+export default function Contact({ config }: ContactProps) {
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar onSearch={() => {}} config={config} />
+      
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-12 md:py-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
+        >
+          <h1 className="text-4xl md:text-5xl font-display font-bold text-black tracking-tight mb-4">Contact Us</h1>
+          <p className="text-brand-muted max-w-lg mx-auto leading-relaxed">
+            Have a question about our stock or prices? Need to place a bulk order? 
+            Reach out to us and we'll be happy to help!
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {/* Contact Details */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-6"
+          >
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-brand-border flex items-start gap-4">
+              <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center shrink-0">
+                <Mail className="w-6 h-6 text-brand-accent" />
+              </div>
+              <div>
+                <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-1">Email Us</h3>
+                <a href="mailto:tarzanmaurya1234@gmail.com" className="text-lg font-semibold text-black hover:text-brand-accent hover:underline break-all">
+                  tarzanmaurya1234@gmail.com
+                </a>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-brand-border flex items-start gap-4">
+              <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center shrink-0">
+                <Clock className="w-6 h-6 text-brand-accent" />
+              </div>
+              <div>
+                <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-1">Business Hours</h3>
+                <p className="text-lg font-semibold text-black">10:00 AM - 9:00 PM</p>
+                <p className="text-sm text-brand-muted">Monday to Sunday (All Days Open)</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Location / Meta Info */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white border-2 border-brand-accent p-8 rounded-3xl text-black shadow-xl flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-16 h-1 bg-brand-accent/30 rounded-full mb-8" />
+              <h2 className="text-3xl font-display font-bold leading-tight mb-6 italic text-black">"Redefining beauty and confidence through authentic products and personalized care."</h2>
+              <div className="flex items-start gap-4">
+                <div>
+                  <p className="font-bold text-xl uppercase tracking-tighter text-brand-accent">Riya Cosmetics</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-12 flex items-center gap-2 pt-8 border-t border-brand-border">
+              <div className="w-3 h-3 bg-brand-accent rounded-full animate-pulse" />
+              <p className="text-xs uppercase font-bold tracking-widest text-brand-muted">Always Ready To Help</p>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+
+      <footer className="border-t border-brand-border py-10 px-6 text-center text-xs text-brand-muted uppercase tracking-[0.2em]">
+        &copy; {new Date().getFullYear()} Riya Cosmetics &bull; Authenticity & Elegance
+      </footer>
+    </div>
+  );
+}
