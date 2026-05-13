@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, ShieldCheck, Mail } from 'lucide-react';
 import Navbar from '../Home/Navbar';
+import { loginWithGoogle } from '../../firebase';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -16,6 +17,26 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const user = await loginWithGoogle();
+      if (user && (user.email === 'tarzanmaurya1234@gmail.com' || user.email === 'admin@example.com')) {
+        localStorage.setItem('adm_auth_session', 'true');
+        onLoginSuccess();
+        navigate('/admin');
+      } else {
+        setError('Unauthorized account. Only approved administrators can access the portal.');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Could not establish secure session with Google.');
+      setLoading(false);
+    }
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -24,6 +45,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     // Simulate small delay for editorial feel
     setTimeout(() => {
       if (password === ADMIN_PASSWORD) {
+        // Even with password, we might need Firebase Auth.
+        // For now, let's just use localStorage for navigation, 
+        // but tell them they need to sign in with Google for full access if they want to save changes.
         localStorage.setItem('adm_auth_session', 'true');
         onLoginSuccess();
         navigate('/admin');
@@ -84,6 +108,25 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               className="w-full editorial-btn-primary py-4 transition-all active:scale-[0.98] shadow-md hover:shadow-lg disabled:opacity-50"
             >
               {loading ? 'Authenticating...' : 'Secure Login'}
+            </button>
+
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-brand-border"></div>
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
+                <span className="bg-white px-4 text-brand-muted">Or Recommended</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full editorial-btn-secondary py-4 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+            >
+              <Mail className="w-4 h-4" />
+              Sign in with Google
             </button>
           </form>
 

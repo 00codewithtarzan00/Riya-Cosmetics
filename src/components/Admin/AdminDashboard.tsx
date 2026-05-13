@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Settings, LogOut, Bell } from 'lucide-react';
+import { Package, Settings, LogOut, Bell, ShieldAlert } from 'lucide-react';
 import ProductManager from './ProductManager';
 import SettingsManager from './SettingsManager';
 import NoticeManager from './NoticeManager';
 import Navbar from '../Home/Navbar';
 import { subscribeToConfig } from '../../services/dataService';
 import { StoreConfig } from '../../types';
+import { auth, loginWithGoogle } from '../../firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -15,17 +17,33 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'inventory' | 'settings' | 'notices'>('inventory');
   const [config, setConfig] = useState<StoreConfig>({});
+  const [fbUser, setFbUser] = useState<User | null>(auth.currentUser);
+  const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setFbUser(user);
+      setAuthLoading(false);
+    });
+
     const unsubConfig = subscribeToConfig((data) => {
       setConfig(data);
     });
 
     return () => {
+      unsubscribe();
       unsubConfig();
     };
   }, []);
+
+  const handleGoogleRecall = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adm_auth_session');
@@ -33,17 +51,31 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     navigate('/');
   };
 
+  const isAuthorized = fbUser && (fbUser.email === 'tarzanmaurya1234@gmail.com' || fbUser.email === 'admin@example.com');
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar onSearch={() => {}} config={config} />
       
       <div className="flex flex-1 flex-col overflow-hidden pb-16 md:pb-20">
+        {/* Authorization Warning */}
+        {!authLoading && !isAuthorized && (
+          <div className="bg-brand-accent text-white px-4 py-3 flex items-center justify-between animate-fade-in shrink-0">
+            <div className="flex items-center gap-3">
+              <ShieldAlert className="w-5 h-5 animate-pulse" />
+              <div className="text-[10px] md:text-xs uppercase font-bold tracking-wider">
+                Read-Only Mode: You must <button onClick={handleGoogleRecall} className="underline decoration-white/50 hover:decoration-white transition-all">Sign in with Google</button> (tarzanmaurya1234@gmail.com) to save changes.
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-10">
           <div className="max-w-5xl mx-auto">
-            {activeTab === 'inventory' && <ProductManager />}
+            {activeTab === 'inventory' && <ProductManager config={config} />}
             {activeTab === 'notices' && <NoticeManager />}
-            {activeTab === 'settings' && <SettingsManager />}
+            {activeTab === 'settings' && <SettingsManager initialConfig={config} />}
           </div>
         </main>
 
