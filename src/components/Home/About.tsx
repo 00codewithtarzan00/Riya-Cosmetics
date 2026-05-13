@@ -48,13 +48,19 @@ export default function About({ config }: AboutProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-6">
               <h2 className="text-3xl font-display font-bold text-black">Beyond Skin Deep</h2>
-              <p className="text-lg text-brand-muted leading-relaxed font-serif">
-                At Riya Cosmetics, we believe beauty is an experience of comfort and self-assurance. 
-                What started as a small boutique has grown into a trusted destination for makeup enthusiasts and skincare devotees.
-              </p>
-              <p className="text-lg text-brand-muted leading-relaxed font-serif">
-                We specialize in bridging the gap between high-end luxury and absolute authenticity. Every palette, serum, and scent in our inventory is handpicked to ensure you receive nothing but the best.
-              </p>
+              <div className="text-lg text-brand-muted leading-relaxed font-serif space-y-4 whitespace-pre-wrap">
+                {config.aboutText || (
+                  <>
+                    <p>
+                      At Riya Cosmetics, we believe beauty is an experience of comfort and self-assurance. 
+                      What started as a small boutique has grown into a trusted destination for makeup enthusiasts and skincare devotees.
+                    </p>
+                    <p>
+                      We specialize in bridging the gap between high-end luxury and absolute authenticity. Every palette, serum, and scent in our inventory is handpicked to ensure you receive nothing but the best.
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">

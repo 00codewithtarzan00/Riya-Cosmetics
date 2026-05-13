@@ -1,37 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn, ShieldCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import Navbar from '../Home/Navbar';
-import { loginWithGoogle } from '../../firebase';
 
 interface LoginProps {
   onLoginSuccess: () => void;
 }
 
+const ADMIN_PASSWORD = 'adm_raj%7979';
+
 export default function Login({ onLoginSuccess }: LoginProps) {
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleLogin = async () => {
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
-    try {
-      const user = await loginWithGoogle();
-      // Rules will handle the actual permission check on write
-      // But we can check if it's the expected email for a better UI flow
-      if (user?.email === "tarzanmaurya1234@gmail.com") {
+
+    // Simulate small delay for editorial feel
+    setTimeout(() => {
+      if (password === ADMIN_PASSWORD) {
         localStorage.setItem('adm_auth_session', 'true');
         onLoginSuccess();
         navigate('/admin');
       } else {
-        setError("You are not authorized as an admin. Please use the registered admin email.");
+        setError('Incorrect authorization key. Please try again.');
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    }, 600);
   };
 
   return (
@@ -47,7 +47,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             Admin Portal
           </div>
           <p className="text-xs uppercase tracking-widest text-brand-muted font-bold mb-8">
-            Secure Management Access
+            Management Authorization
           </p>
 
           {error && (
@@ -56,20 +56,39 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             </div>
           )}
 
-          <div className="space-y-4 text-black">
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock className="h-4 w-4 text-brand-muted" />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                placeholder="Manager Password"
+                className="editorial-input pl-12 pr-12 py-4 bg-pink-50/30 border-brand-accent/10 focus:bg-white"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4 text-brand-muted hover:text-brand-accent transition-colors" /> : <Eye className="h-4 w-4 text-brand-muted hover:text-brand-accent transition-colors" />}
+              </button>
+            </div>
+
             <button
-              onClick={handleGoogleLogin}
+              type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 border border-brand-accent/20 bg-white py-4 rounded-lg font-bold text-sm hover:bg-pink-50/50 transition-all active:scale-[0.98] shadow-sm"
+              className="w-full editorial-btn-primary py-4 transition-all active:scale-[0.98] shadow-md hover:shadow-lg disabled:opacity-50"
             >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-              {loading ? 'Authenticating...' : 'Sign in with Google Admin Account'}
+              {loading ? 'Authenticating...' : 'Secure Login'}
             </button>
-          </div>
+          </form>
 
           <p className="mt-10 text-[10px] text-brand-muted leading-relaxed italic opacity-75">
-            This area is restricted to authorized personnel only. 
-            All access logs are recorded for Riya Cosmetics security.
+            Restricted System. Authorization required for Riya Cosmetics.
           </p>
         </div>
       </div>

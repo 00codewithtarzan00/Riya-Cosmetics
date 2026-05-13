@@ -8,8 +8,6 @@ import Contact from './components/Home/Contact';
 import About from './components/Home/About';
 import ErrorBoundary from './components/ErrorBoundary';
 import { subscribeToConfig } from './services/dataService';
-import { auth, db } from './firebase';
-import { doc, getDocFromServer } from 'firebase/firestore';
 import { StoreConfig } from './types';
 
 export default function App() {
@@ -22,31 +20,6 @@ export default function App() {
     if (session === 'true') {
       setIsAdmin(true);
     }
-
-    // Sync Firebase Auth state for real security context
-    const unsubAuth = auth.onAuthStateChanged((user) => {
-      if (user && user.email === "tarzanmaurya1234@gmail.com") {
-        setIsAdmin(true);
-        localStorage.setItem('adm_auth_session', 'true');
-      } else if (!user && !localStorage.getItem('adm_auth_session')) {
-        setIsAdmin(false);
-      }
-    });
-
-    // Test Firestore Connection
-    const testConnection = async () => {
-      try {
-        await getDocFromServer(doc(db, 'config', 'global'));
-        console.log("Firebase connection established successfully.");
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('the client is offline')) {
-          console.error("Firebase is offline. Please check your internet connection.");
-        } else {
-          console.error("Firebase connection error:", error);
-        }
-      }
-    };
-    testConnection();
 
     // Sync Global Config for logo throughout the app
     const unsubConfig = subscribeToConfig((data) => {
@@ -64,7 +37,6 @@ export default function App() {
     });
 
     return () => {
-      unsubAuth();
       unsubConfig();
     };
   }, []);

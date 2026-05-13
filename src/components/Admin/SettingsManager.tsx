@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { subscribeToConfig, updateConfig } from '../../services/dataService';
 import { StoreConfig } from '../../types';
-import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
-import { auth } from '../../firebase';
+import { Save, Image as ImageIcon, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function SettingsManager() {
   const [config, setConfig] = useState<StoreConfig>({
@@ -15,7 +14,7 @@ export default function SettingsManager() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showCategorySettings, setShowCategorySettings] = useState(false);
-  const [isFirebaseAuthed, setIsFirebaseAuthed] = useState(!!auth.currentUser);
+  const [isDirty, setIsDirty] = useState(false);
   
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
@@ -25,38 +24,39 @@ export default function SettingsManager() {
   const [newCategoryName, setNewCategoryName] = useState('');
   
   useEffect(() => {
-    const unsubAuth = auth.onAuthStateChanged(user => {
-      setIsFirebaseAuthed(!!user);
-    });
-
     const unsubConfig = subscribeToConfig((data) => {
-      setConfig({
-        ...data,
-        categories: data.categories || [],
-        categoryImages: data.categoryImages || {}
-      });
+      // Only sync from remote if the user hasn't started editing
+      // or if we just finished a save operation
+      if (!isDirty) {
+        setConfig({
+          ...data,
+          categories: data.categories || [],
+          categoryImages: data.categoryImages || {}
+        });
+      }
     });
 
     return () => {
-      unsubAuth();
       unsubConfig();
     };
-  }, []);
+  }, [isDirty]);
 
   const addCategory = () => {
     if (newCategoryName.trim() && !config.categories?.includes(newCategoryName.trim())) {
       const updatedCategories = [...(config.categories || []), newCategoryName.trim()];
       setConfig({ ...config, categories: updatedCategories });
       setNewCategoryName('');
+      setIsDirty(true);
     }
   };
 
   const removeCategory = (cat: string) => {
     if (window.confirm(`Delete "${cat}" category? Products already in this category will move to "Uncategorized" until edited.`)) {
       const updatedCategories = (config.categories || []).filter(c => c !== cat);
-      const updatedImages = { ...config.categoryImages };
+      const updatedImages = { ...(config.categoryImages || {}) };
       delete updatedImages[cat];
       setConfig({ ...config, categories: updatedCategories, categoryImages: updatedImages });
+      setIsDirty(true);
     }
   };
 
@@ -86,6 +86,7 @@ export default function SettingsManager() {
         } else {
           setConfig(prev => ({ ...prev, [field]: result }));
         }
+        setIsDirty(true);
         setUploading(null);
         e.target.value = '';
       };
@@ -101,6 +102,7 @@ export default function SettingsManager() {
     try {
       await updateConfig(config);
       setSaved(true);
+      setIsDirty(false);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error(err);
@@ -114,16 +116,6 @@ export default function SettingsManager() {
       <header className="mb-8 border-b border-brand-border pb-4">
         <h1 className="text-3xl font-display font-bold text-brand-accent">Global Settings</h1>
         <p className="text-sm text-brand-muted mt-1">Customize your storefront branding and message.</p>
-        
-        {!isFirebaseAuthed && (
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3 animate-fade-in">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-800 leading-relaxed">
-              <p className="font-bold mb-1">Database Connection Limited</p>
-              <p>You are logged in with a local password, but your Firebase session is inactive. To save these settings permanently to the database, please <strong>Sign in with Google</strong> in the Admin login section.</p>
-            </div>
-          </div>
-        )}
       </header>
 
       <form onSubmit={handleSave} className="bg-white editorial-card overflow-hidden max-w-2xl">
@@ -153,7 +145,10 @@ export default function SettingsManager() {
                       className="editorial-input h-10"
                       placeholder="Paste Link or Upload"
                       value={config.logoUrl || ''}
-                      onChange={e => setConfig({ ...config, logoUrl: e.target.value })}
+                      onChange={e => {
+                        setConfig({ ...config, logoUrl: e.target.value });
+                        setIsDirty(true);
+                      }}
                     />
                     <button 
                       type="button" 
@@ -197,7 +192,10 @@ export default function SettingsManager() {
                       className="editorial-input h-10"
                       placeholder="Background Image URL"
                       value={config.heroImageUrl || ''}
-                      onChange={e => setConfig({ ...config, heroImageUrl: e.target.value })}
+                      onChange={e => {
+                        setConfig({ ...config, heroImageUrl: e.target.value });
+                        setIsDirty(true);
+                      }}
                     />
                     <button 
                       type="button" 
@@ -225,6 +223,24 @@ export default function SettingsManager() {
               </div>
             </div>
             
+            <div className="space-y-3 pt-4 border-t border-brand-border">
+              <label className="text-xs font-bold flex items-center gap-2">
+                <Save className="w-3.5 h-3.5" /> About Your Store
+              </label>
+              <textarea
+                className="editorial-input min-h-[120px] py-4"
+                placeholder="Riya Cosmetics is your premier destination for..."
+                value={config.aboutText || ''}
+                onChange={e => {
+                  setConfig({ ...config, aboutText: e.target.value });
+                  setIsDirty(true);
+                }}
+              />
+              <p className="text-[10px] text-brand-muted italic leading-none">
+                This text appears in the "About" section of your website.
+              </p>
+            </div>
+
             <div className="pt-4 border-t border-brand-border">
               <button 
                 type="button"
@@ -262,7 +278,10 @@ export default function SettingsManager() {
                             className="editorial-input h-9 px-3 text-[11px]"
                             placeholder="Image URL"
                             value={config.allCategoriesImageUrl || ''}
-                            onChange={e => setConfig(prev => ({ ...prev, allCategoriesImageUrl: e.target.value }))}
+                            onChange={e => {
+                              setConfig(prev => ({ ...prev, allCategoriesImageUrl: e.target.value }));
+                              setIsDirty(true);
+                            }}
                           />
                           <button 
                             type="button"
@@ -336,13 +355,16 @@ export default function SettingsManager() {
                               className="editorial-input h-9 px-3 text-[11px]"
                               placeholder="Image URL"
                               value={config.categoryImages?.[cat] || ''}
-                              onChange={e => setConfig(prev => ({
-                                ...prev,
-                                categoryImages: {
-                                  ...(prev.categoryImages || {}),
-                                  [cat]: e.target.value
-                                }
-                              }))}
+                              onChange={e => {
+                                setConfig(prev => ({
+                                  ...prev,
+                                  categoryImages: {
+                                    ...(prev.categoryImages || {}),
+                                    [cat]: e.target.value
+                                  }
+                                }));
+                                setIsDirty(true);
+                              }}
                             />
                             <button 
                               type="button"

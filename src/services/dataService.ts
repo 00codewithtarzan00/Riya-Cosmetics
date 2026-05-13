@@ -171,10 +171,11 @@ export function subscribeToConfig(callback: (config: StoreConfig) => void) {
     if (snapshot.exists()) {
       const data = snapshot.data() as StoreConfig;
       callback({
-        ...MOCK_CONFIG, // Use mock as base for defaults
+        ...MOCK_CONFIG,
         ...data,
-        categories: data.categories || MOCK_CONFIG.categories,
-        categoryImages: data.categoryImages || MOCK_CONFIG.categoryImages
+        // Only use mock if the field is truly missing (undefined)
+        categories: data.categories !== undefined ? data.categories : MOCK_CONFIG.categories,
+        categoryImages: data.categoryImages !== undefined ? data.categoryImages : MOCK_CONFIG.categoryImages
       });
     } else {
       callback(MOCK_CONFIG);

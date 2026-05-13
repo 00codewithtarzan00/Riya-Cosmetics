@@ -43,8 +43,12 @@ interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const isFirestoreError = error && typeof error === 'object' && 'code' in error;
+  const errorCode = isFirestoreError ? (error as any).code : null;
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -54,6 +58,12 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+
+  console.error('Firestore Error [', errorCode, ']: ', JSON.stringify(errInfo));
+
+  // Only throw for permission errors as per core instructions, 
+  // others are handled internally by Firestore (like offline mode)
+  if (errorCode === 'permission-denied' || errorMessage.toLowerCase().includes('permission')) {
+    throw new Error(JSON.stringify(errInfo));
+  }
 }

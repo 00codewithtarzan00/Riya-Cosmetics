@@ -243,19 +243,19 @@ export default function ProductManager() {
 
       {/* Modal Tooltip Placeholder/Form */}
       {isEditing && (
-        <div className="fixed inset-0 bg-pink-100/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-pink-100/60 backdrop-blur-md z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
           <form
             onSubmit={handleSave}
-            className="bg-white w-full max-w-lg editorial-card p-8 animate-slide-up"
+            className="bg-white w-full max-w-lg md:rounded-2xl shadow-2xl p-6 pb-24 md:pb-8 md:p-8 animate-slide-up flex flex-col max-h-[92vh] md:max-h-[90vh]"
           >
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 shrink-0 pt-2 md:pt-0">
               <h2 className="text-xl font-display font-bold">{currentProduct?.id ? 'Edit Rate' : 'Add New Product'}</h2>
-              <button type="button" onClick={() => setIsEditing(false)} className="text-brand-muted hover:text-black">
+              <button type="button" onClick={() => setIsEditing(false)} className="bg-gray-100 p-2 rounded-full text-brand-muted hover:text-black transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-brand-muted">Category</label>
@@ -374,17 +374,17 @@ export default function ProductManager() {
               </div>
             </div>
 
-            <div className="mt-8 flex gap-3">
+            <div className="mt-8 flex gap-3 shrink-0">
               <button
                 type="submit"
-                className="flex-1 editorial-btn-primary"
+                className="flex-1 editorial-btn-primary py-3"
               >
                 Save Changes
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="flex-1 editorial-btn-secondary"
+                className="flex-1 editorial-btn-secondary py-3"
               >
                 Cancel
               </button>
