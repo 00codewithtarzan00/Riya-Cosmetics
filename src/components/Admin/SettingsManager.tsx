@@ -3,12 +3,8 @@ import { subscribeToConfig, updateConfig } from '../../services/dataService';
 import { StoreConfig } from '../../types';
 import { Save, Image as ImageIcon, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 
-interface SettingsManagerProps {
-  initialConfig?: StoreConfig;
-}
-
-export default function SettingsManager({ initialConfig }: SettingsManagerProps) {
-  const [config, setConfig] = useState<StoreConfig>(initialConfig || {
+export default function SettingsManager() {
+  const [config, setConfig] = useState<StoreConfig>({
     logoUrl: '',
     heroImageUrl: '',
     aboutText: '',
@@ -19,7 +15,6 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
   const [loading, setLoading] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showCategorySettings, setShowCategorySettings] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
@@ -27,7 +22,6 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
   const setDirty = (val: boolean) => {
     setIsDirty(val);
     isDirtyRef.current = val;
-    if (val) setError(null);
   };
   
   const logoFileRef = useRef<HTMLInputElement>(null);
@@ -38,16 +32,6 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
   const [newCategoryName, setNewCategoryName] = useState('');
   
   useEffect(() => {
-    // If we have initialConfig from parent, initialize with it
-    if (initialConfig && !isDirtyRef.current) {
-      setConfig({
-        ...initialConfig,
-        categories: initialConfig.categories || [],
-        categoryImages: initialConfig.categoryImages || {}
-      });
-      setLoadingConfig(false);
-    }
-
     const unsubConfig = subscribeToConfig((data) => {
       // Use the ref to check the absolute latest dirty status
       // even if the snapshot arrives between render cycles
@@ -64,7 +48,7 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
     return () => {
       unsubConfig();
     };
-  }, [initialConfig]); // Sync if parent sends fresh initial config
+  }, []); // Only subscribe once
 
   const addCategory = () => {
     if (loadingConfig) return;
@@ -104,8 +88,8 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: string, isCategory: boolean = false) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 500000) { 
-        alert("Image too large! Please use an image smaller than 500KB for better performance.");
+      if (file.size > 1000000) { 
+        alert("Image quality is too high! Please use an image smaller than 1MB for fast loading.");
         return;
       }
       
@@ -138,7 +122,6 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
     e.preventDefault();
     setLoading(true);
     setSaved(false);
-    setError(null);
     try {
       await updateConfig(config);
       setSaved(true);
@@ -146,16 +129,6 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error(err);
-      if (err instanceof Error) {
-        try {
-          const parsed = JSON.parse(err.message);
-          setError(parsed.error || 'Permission denied. Please ensure you are logged in with the correct Google account.');
-        } catch {
-          setError('Failed to update config. Check your internet connection or admin permissions.');
-        }
-      } else {
-        setError('An unexpected error occurred while saving.');
-      }
     } finally {
       setLoading(false);
     }
@@ -178,11 +151,6 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
           </div>
         )}
         <div className="p-8 space-y-6">
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-xs rounded animate-shake">
-              {error}
-            </div>
-          )}
           <div className="space-y-6">
             <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-4 pb-1">
               Store Branding
@@ -211,7 +179,7 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
                       onChange={e => {
                         const val = e.target.value;
                         setConfig(prev => ({ ...prev, logoUrl: val }));
-                        setDirty(true);
+                        setIsDirty(true);
                       }}
                     />
                     <button 
@@ -259,7 +227,7 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
                       onChange={e => {
                         const val = e.target.value;
                         setConfig(prev => ({ ...prev, heroImageUrl: val }));
-                        setDirty(true);
+                        setIsDirty(true);
                       }}
                     />
                     <button 
@@ -299,7 +267,7 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
                 onChange={e => {
                   const val = e.target.value;
                   setConfig(prev => ({ ...prev, aboutText: val }));
-                  setDirty(true);
+                  setIsDirty(true);
                 }}
               />
               <p className="text-[10px] text-brand-muted italic leading-none">
@@ -346,7 +314,7 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
                             value={config.allCategoriesImageUrl || ''}
                             onChange={e => {
                               setConfig(prev => ({ ...prev, allCategoriesImageUrl: e.target.value }));
-                              setDirty(true);
+                              setIsDirty(true);
                             }}
                           />
                           <button 
@@ -430,7 +398,7 @@ export default function SettingsManager({ initialConfig }: SettingsManagerProps)
                                     [cat]: e.target.value
                                   }
                                 }));
-                                setDirty(true);
+                                setIsDirty(true);
                               }}
                             />
                             <button 

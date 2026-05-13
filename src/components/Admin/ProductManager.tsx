@@ -4,17 +4,12 @@ import { Product, StoreConfig } from '../../types';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload, Search } from 'lucide-react';
 import { formatPrice } from '../../lib/utils';
 
-interface ProductManagerProps {
-  config: StoreConfig;
-}
-
-export default function ProductManager({ config }: ProductManagerProps) {
+export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [config, setConfig] = useState<StoreConfig | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -24,8 +19,13 @@ export default function ProductManager({ config }: ProductManagerProps) {
         setProducts(prodData);
     });
     
+    const unsubConfig = subscribeToConfig((confData) => {
+        setConfig(confData);
+    });
+
     return () => {
       unsubProducts();
+      unsubConfig();
     };
   }, []);
 
@@ -57,8 +57,6 @@ export default function ProductManager({ config }: ProductManagerProps) {
       }
     }
 
-    setLoading(true);
-    setError(null);
     try {
       const data = {
         name: currentProduct.name!,
@@ -81,39 +79,25 @@ export default function ProductManager({ config }: ProductManagerProps) {
       setCurrentProduct(null);
     } catch (err) {
       console.error(err);
-      if (err instanceof Error) {
-        try {
-          const parsed = JSON.parse(err.message);
-          setError(parsed.error || 'Failed to save product changes.');
-        } catch {
-          setError('Permission denied or network error. Check your admin login.');
-        }
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    setError(null);
     try {
       await deleteProduct(id);
       setDeleteConfirmId(null);
     } catch (err) {
        console.error(err);
-       setError('Failed to delete product. Ensure you have proper permissions.');
     }
   };
 
   const toggleAvailability = async (product: Product) => {
-    setError(null);
     try {
       await updateProduct(product.id, {
         available: !product.available
       });
     } catch (err) {
        console.error(err);
-       setError('Failed to update availability.');
     }
   };
 
@@ -160,13 +144,6 @@ export default function ProductManager({ config }: ProductManagerProps) {
           </form>
         </div>
       </header>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-xs rounded-lg animate-shake flex items-center justify-between">
-          <span className="font-medium">{error}</span>
-          <button onClick={() => setError(null)} className="font-bold underline uppercase tracking-widest text-[10px] opacity-70 hover:opacity-100">Dismiss</button>
-        </div>
-      )}
 
       {/* Grid of Products for Admin */}
       <div className="grid grid-cols-1 gap-4">

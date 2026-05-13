@@ -156,7 +156,7 @@ export default function Home({ config }: HomeProps) {
               </span>
             </button>
 
-            {(config.categories || []).filter(c => c && c.trim()).map((cat) => {
+            {(config.categories || []).map((cat) => {
               const isSelected = selectedCategory === cat;
               const catImageUrl = config.categoryImages?.[cat];
 

@@ -6,8 +6,6 @@ import { Plus, Trash2, Calendar } from 'lucide-react';
 export default function NoticeManager() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [newNotice, setNewNotice] = useState({ title: '', content: '' });
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     return subscribeToNotices((data) => {
@@ -19,8 +17,6 @@ export default function NoticeManager() {
     e.preventDefault();
     if (!newNotice.title || !newNotice.content) return;
 
-    setLoading(true);
-    setError(null);
     try {
       await addNotice({
         ...newNotice,
@@ -29,27 +25,15 @@ export default function NoticeManager() {
       setNewNotice({ title: '', content: '' });
     } catch (err) {
       console.error(err);
-      if (err instanceof Error) {
-        try {
-          const parsed = JSON.parse(err.message);
-          setError(parsed.error || 'Failed to post notice.');
-        } catch {
-          setError('Permission denied! Check your manager login.');
-        }
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this notice?')) return;
-    setError(null);
     try {
       await deleteNotice(id);
     } catch (err) {
       console.error(err);
-      setError('Could not delete notice.');
     }
   };
 
@@ -59,13 +43,6 @@ export default function NoticeManager() {
         <h1 className="text-3xl font-display font-bold text-brand-accent">Official Notices</h1>
         <p className="text-sm text-brand-muted mt-1">Updates, holiday announcements, and special stock news.</p>
       </header>
-
-      {error && (
-        <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 text-xs rounded-lg animate-shake flex items-center justify-between">
-          <span className="font-medium">{error}</span>
-          <button onClick={() => setError(null)} className="font-bold underline uppercase tracking-widest text-[10px] opacity-70 hover:opacity-100">Dismiss</button>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-1">
