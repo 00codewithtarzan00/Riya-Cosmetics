@@ -9,9 +9,11 @@ export default function SettingsManager() {
     heroImageUrl: '',
     aboutText: '',
     categoryImages: {},
-    allCategoriesImageUrl: ''
+    allCategoriesImageUrl: '',
+    categories: []
   });
   const [loading, setLoading] = useState(false);
+  const [loadingConfig, setLoadingConfig] = useState(true);
   const [saved, setSaved] = useState(false);
   const [showCategorySettings, setShowCategorySettings] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -33,6 +35,7 @@ export default function SettingsManager() {
           categories: data.categories || [],
           categoryImages: data.categoryImages || {}
         });
+        setLoadingConfig(false);
       }
     });
 
@@ -42,9 +45,17 @@ export default function SettingsManager() {
   }, [isDirty]);
 
   const addCategory = () => {
-    if (newCategoryName.trim() && !config.categories?.includes(newCategoryName.trim())) {
-      const updatedCategories = [...(config.categories || []), newCategoryName.trim()];
-      setConfig({ ...config, categories: updatedCategories });
+    if (loadingConfig) return;
+    const trimmedName = newCategoryName.trim();
+    if (trimmedName) {
+      setConfig(prev => {
+        const categories = prev.categories || [];
+        if (categories.includes(trimmedName)) return prev;
+        return {
+          ...prev,
+          categories: [...categories, trimmedName]
+        };
+      });
       setNewCategoryName('');
       setIsDirty(true);
     }
@@ -52,10 +63,16 @@ export default function SettingsManager() {
 
   const removeCategory = (cat: string) => {
     if (window.confirm(`Delete "${cat}" category? Products already in this category will move to "Uncategorized" until edited.`)) {
-      const updatedCategories = (config.categories || []).filter(c => c !== cat);
-      const updatedImages = { ...(config.categoryImages || {}) };
-      delete updatedImages[cat];
-      setConfig({ ...config, categories: updatedCategories, categoryImages: updatedImages });
+      setConfig(prev => {
+        const updatedCategories = (prev.categories || []).filter(c => c !== cat);
+        const updatedImages = { ...(prev.categoryImages || {}) };
+        delete updatedImages[cat];
+        return {
+          ...prev,
+          categories: updatedCategories,
+          categoryImages: updatedImages
+        };
+      });
       setIsDirty(true);
     }
   };
@@ -118,7 +135,15 @@ export default function SettingsManager() {
         <p className="text-sm text-brand-muted mt-1">Customize your storefront branding and message.</p>
       </header>
 
-      <form onSubmit={handleSave} className="bg-white editorial-card overflow-hidden max-w-2xl">
+      <form onSubmit={handleSave} className="bg-white editorial-card overflow-hidden max-w-2xl relative">
+        {loadingConfig && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Loading Settings...</p>
+            </div>
+          </div>
+        )}
         <div className="p-8 space-y-6">
           <div className="space-y-6">
             <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-4 pb-1">
@@ -146,7 +171,8 @@ export default function SettingsManager() {
                       placeholder="Paste Link or Upload"
                       value={config.logoUrl || ''}
                       onChange={e => {
-                        setConfig({ ...config, logoUrl: e.target.value });
+                        const val = e.target.value;
+                        setConfig(prev => ({ ...prev, logoUrl: val }));
                         setIsDirty(true);
                       }}
                     />
@@ -193,7 +219,8 @@ export default function SettingsManager() {
                       placeholder="Background Image URL"
                       value={config.heroImageUrl || ''}
                       onChange={e => {
-                        setConfig({ ...config, heroImageUrl: e.target.value });
+                        const val = e.target.value;
+                        setConfig(prev => ({ ...prev, heroImageUrl: val }));
                         setIsDirty(true);
                       }}
                     />
@@ -232,7 +259,8 @@ export default function SettingsManager() {
                 placeholder="Riya Cosmetics is your premier destination for..."
                 value={config.aboutText || ''}
                 onChange={e => {
-                  setConfig({ ...config, aboutText: e.target.value });
+                  const val = e.target.value;
+                  setConfig(prev => ({ ...prev, aboutText: val }));
                   setIsDirty(true);
                 }}
               />
@@ -314,6 +342,7 @@ export default function SettingsManager() {
                          placeholder="Category Name (e.g. Lips, Eyes, Organic)"
                          value={newCategoryName}
                          onChange={e => setNewCategoryName(e.target.value)}
+                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCategory())}
                        />
                        <button 
                          type="button" 
