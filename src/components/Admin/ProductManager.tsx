@@ -246,17 +246,27 @@ export default function ProductManager() {
         <div className="fixed inset-0 bg-pink-100/60 backdrop-blur-md z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
           <form
             onSubmit={handleSave}
-            className="bg-white w-full max-w-lg md:rounded-2xl shadow-2xl p-6 pb-24 md:pb-8 md:p-8 animate-slide-up flex flex-col max-h-[92vh] md:max-h-[90vh]"
+            className="bg-white w-full max-w-2xl md:rounded-2xl shadow-2xl p-6 pb-24 md:pb-8 md:p-8 animate-slide-up flex flex-col max-h-[95vh] md:max-h-[90vh]"
           >
-            <div className="flex justify-between items-center mb-6 shrink-0 pt-2 md:pt-0">
+            <div className="flex justify-between items-center mb-4 shrink-0 pt-2 md:pt-0">
               <h2 className="text-xl font-display font-bold">{currentProduct?.id ? 'Edit Rate' : 'Add New Product'}</h2>
               <button type="button" onClick={() => setIsEditing(false)} className="bg-gray-100 p-2 rounded-full text-brand-muted hover:text-black transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-brand-muted">Product Name</label>
+                  <input
+                    required
+                    className="editorial-input h-10"
+                    placeholder="e.g. Master Gold Tea"
+                    value={currentProduct?.name || ''}
+                    onChange={e => setCurrentProduct({ ...currentProduct, name: e.target.value })}
+                  />
+                </div>
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-brand-muted">Category</label>
                   <select
@@ -271,72 +281,60 @@ export default function ProductManager() {
                     ))}
                   </select>
                 </div>
+
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-brand-muted">Marked Price (MRP)</label>
                   <input
                     required
                     type="number"
                     step="0.01"
-                    className="editorial-input"
+                    className="editorial-input h-10"
                     placeholder="MRP ₹"
                     value={currentProduct?.mrp || ''}
                     onChange={e => setCurrentProduct({ ...currentProduct, mrp: parseFloat(e.target.value) })}
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-brand-muted">Selling Price (Rate)</label>
                   <input
                     required
                     type="number"
                     step="0.01"
-                    className="editorial-input"
+                    className="editorial-input h-10"
                     placeholder="Rate ₹"
                     value={currentProduct?.price || ''}
                     onChange={e => setCurrentProduct({ ...currentProduct, price: parseFloat(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold text-brand-muted">Product Name</label>
-                  <input
-                    required
-                    className="editorial-input"
-                    placeholder="e.g. Master Gold Tea"
-                    value={currentProduct?.name || ''}
-                    onChange={e => setCurrentProduct({ ...currentProduct, name: e.target.value })}
-                  />
-                </div>
               </div>
 
-              <div className="flex items-center gap-4 py-2 border-y border-brand-border">
+              <div className="flex flex-wrap items-center gap-6 py-2 border-y border-brand-border">
                 <div className="flex items-center gap-2">
                    <input 
                     type="checkbox"
                     id="isSpecial"
-                    className="w-4 h-4 accent-brand-accent"
+                    className="w-4 h-4 accent-brand-accent cursor-pointer"
                     checked={currentProduct?.isSpecial || false}
                     onChange={e => setCurrentProduct({ ...currentProduct, isSpecial: e.target.checked })}
                   />
-                  <label htmlFor="isSpecial" className="text-xs font-bold uppercase cursor-pointer">Special Discount Item (Max 2)</label>
+                  <label htmlFor="isSpecial" className="text-xs font-bold uppercase cursor-pointer select-none">Special Discount Item</label>
                 </div>
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-2">
                    <input 
                     type="checkbox"
                     id="available"
-                    className="w-4 h-4 accent-brand-accent"
+                    className="w-4 h-4 accent-brand-accent cursor-pointer"
                     checked={currentProduct?.available ?? true}
                     onChange={e => setCurrentProduct({ ...currentProduct, available: e.target.checked })}
                   />
-                  <label htmlFor="available" className="text-xs font-bold uppercase cursor-pointer">In Stock</label>
+                  <label htmlFor="available" className="text-xs font-bold uppercase cursor-pointer select-none">In Stock</label>
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] uppercase font-bold text-brand-muted">Description</label>
                 <textarea
-                  className="editorial-input min-h-[80px]"
+                  className="editorial-input min-h-[60px] py-2"
                   placeholder="Details like weight, age, or brand..."
                   value={currentProduct?.description || ''}
                   onChange={e => setCurrentProduct({ ...currentProduct, description: e.target.value })}
@@ -355,7 +353,7 @@ export default function ProductManager() {
                   <button 
                     type="button" 
                     onClick={() => fileInputRef.current?.click()}
-                    className="editorial-btn-secondary h-10 px-3 flex items-center justify-center"
+                    className="editorial-btn-secondary h-10 px-3 flex items-center justify-center shrink-0"
                     title="Upload File"
                   >
                     <Upload className="w-4 h-4" />
@@ -374,7 +372,7 @@ export default function ProductManager() {
               </div>
             </div>
 
-            <div className="mt-8 flex gap-3 shrink-0">
+            <div className="mt-4 flex gap-3 shrink-0">
               <button
                 type="submit"
                 className="flex-1 editorial-btn-primary py-3"
