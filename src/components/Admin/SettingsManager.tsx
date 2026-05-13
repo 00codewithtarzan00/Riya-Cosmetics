@@ -17,6 +17,12 @@ export default function SettingsManager() {
   const [saved, setSaved] = useState(false);
   const [showCategorySettings, setShowCategorySettings] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+  
+  const setDirty = (val: boolean) => {
+    setIsDirty(val);
+    isDirtyRef.current = val;
+  };
   
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
@@ -27,9 +33,9 @@ export default function SettingsManager() {
   
   useEffect(() => {
     const unsubConfig = subscribeToConfig((data) => {
-      // Only sync from remote if the user hasn't started editing
-      // or if we just finished a save operation
-      if (!isDirty) {
+      // Use the ref to check the absolute latest dirty status
+      // even if the snapshot arrives between render cycles
+      if (!isDirtyRef.current) {
         setConfig({
           ...data,
           categories: data.categories || [],
@@ -42,7 +48,7 @@ export default function SettingsManager() {
     return () => {
       unsubConfig();
     };
-  }, [isDirty]);
+  }, []); // Only subscribe once
 
   const addCategory = () => {
     if (loadingConfig) return;
@@ -57,7 +63,7 @@ export default function SettingsManager() {
         };
       });
       setNewCategoryName('');
-      setIsDirty(true);
+      setDirty(true);
     }
   };
 
@@ -73,7 +79,7 @@ export default function SettingsManager() {
           categoryImages: updatedImages
         };
       });
-      setIsDirty(true);
+      setDirty(true);
     }
   };
 
@@ -103,7 +109,7 @@ export default function SettingsManager() {
         } else {
           setConfig(prev => ({ ...prev, [field]: result }));
         }
-        setIsDirty(true);
+        setDirty(true);
         setUploading(null);
         e.target.value = '';
       };
@@ -119,7 +125,7 @@ export default function SettingsManager() {
     try {
       await updateConfig(config);
       setSaved(true);
-      setIsDirty(false);
+      setDirty(false);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error(err);
@@ -421,14 +427,25 @@ export default function SettingsManager() {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-6 flex items-center justify-end border-t">
+        <div className="bg-gray-50 p-6 flex flex-col md:flex-row items-center justify-between border-t gap-4">
+          <div className="flex-1">
+            {isDirty && (
+              <div className="flex items-center gap-2 text-brand-accent animate-pulse">
+                <div className="w-2 h-2 bg-brand-accent rounded-full"></div>
+                <span className="text-[10px] font-bold uppercase tracking-widest">You have unsaved changes</span>
+              </div>
+            )}
+            {!isDirty && saved && (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-green-600">All changes saved successfully</span>
+            )}
+          </div>
           <button
             type="submit"
             disabled={loading || uploading !== null}
-            className={`flex items-center gap-2 editorial-btn-primary ${saved ? 'bg-green-600' : ''} disabled:opacity-50`}
+            className={`flex items-center gap-2 editorial-btn-primary min-w-[160px] justify-center ${saved ? 'bg-green-600' : ''} disabled:opacity-50 transition-all duration-300`}
           >
             <Save className="w-4 h-4" />
-            {loading ? 'Saving...' : uploading ? 'Wait for upload...' : saved ? 'Updated' : 'Update'}
+            {loading ? 'Saving...' : uploading ? 'Wait for upload...' : saved ? 'Saved!' : 'Save All Changes'}
           </button>
         </div>
       </form>
