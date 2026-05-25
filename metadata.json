@@ -1,0 +1,6 @@
+{
+  "name": "Riya Cosmetics",
+  "description": "A luxury cosmetics lookbook and price lookup catalog showcasing high-fashion lip colours, premium face profiles, and luxury skincare formulas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
