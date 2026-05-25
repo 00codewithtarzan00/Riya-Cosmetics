@@ -54,7 +54,7 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
   }, [products, selectedCategory, searchQuery, sortBy]);
 
   return (
-    <div id="catalog-section" className="py-24 bg-[var(--theme-bg)] min-h-screen">
+    <div id="catalog-section" className="pt-28 pb-20 bg-[var(--theme-bg)] min-h-screen">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         
         {/* Searching, Sorting, and Category Controls Group */}

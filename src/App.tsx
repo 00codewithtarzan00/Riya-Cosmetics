@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
 import Navbar from './components/Navbar.tsx';
-import Hero from './components/Hero.tsx';
 import ProductCatalog from './components/ProductCatalog.tsx';
 import AdminPortal from './components/AdminPortal.tsx';
 import {Product} from './components/ProductCard.tsx';
@@ -152,13 +151,8 @@ export default function App() {
 
       {/* Main rendering area */}
       {currentView === 'catalog' ? (
-        <>
-          {/* Welcome Screen banner */}
-          <Hero onExploreClick={handleScrollToCatalog} />
-          
-          {/* Public interactive catalog lists */}
-          <ProductCatalog products={products} />
-        </>
+        /* Public interactive catalog lists */
+        <ProductCatalog products={products} />
       ) : (
         /* Administration Guarded Screen space */
         <AdminPortal 
