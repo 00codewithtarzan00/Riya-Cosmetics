@@ -244,13 +244,7 @@ export default function AdminPortal({
             </button>
           </form>
 
-          {/* Prompt info */}
-          <div className="mt-8 pt-6 border-t border-[var(--theme-border)] text-center">
-            <p className="text-[11px] text-stone-500 leading-relaxed font-mono">
-              Demo bypass password reference:<br/>
-              <span className="text-stone-700 bg-stone-100 px-1 py-0.5 rounded-none select-all font-semibold">adm_raj%7979</span>
-            </p>
-          </div>
+
         </div>
       </div>
     );
