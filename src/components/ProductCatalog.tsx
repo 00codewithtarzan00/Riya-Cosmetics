@@ -189,10 +189,6 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
               {/* Modal Right Column: Deep Product Details */}
               <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto flex flex-col justify-between max-h-[50vh] md:max-h-full">
                 <div>
-                  <div className="flex items-center gap-2 mb-2 text-[var(--theme-accent)]">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-[10px] tracking-[0.25em] font-bold uppercase">Riya Signature Formula</span>
-                  </div>
                   <h3 className="text-2xl md:text-3xl font-light text-[var(--theme-text-primary)] uppercase tracking-wide leading-tight mb-4">
                     {selectedProduct.name}
                   </h3>
