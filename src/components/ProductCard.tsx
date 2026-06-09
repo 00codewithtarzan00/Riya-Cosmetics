@@ -69,7 +69,7 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
             {product.name}
           </h3>
           {/* Limit description and keep it compact */}
-          <p className="text-[11px] sm:text-xs text-[var(--theme-text-secondary)] font-light line-clamp-2 leading-relaxed">
+          <p className="text-[11px] sm:text-xs text-[var(--theme-text-secondary)] font-medium line-clamp-2 leading-relaxed">
             {product.description}
           </p>
         </div>

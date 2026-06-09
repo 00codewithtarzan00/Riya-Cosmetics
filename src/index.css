@@ -7,9 +7,9 @@
   --theme-text-secondary: #4A4A4A;
   --theme-text-muted: #7A7A7A;
   --theme-border: #E6E1D6;
-  --theme-accent: #9A7B43;
-  --theme-accent-hover: #7F6332;
-  --theme-accent-glow: rgba(154, 123, 67, 0.08);
+  --theme-accent: #FF0052;
+  --theme-accent-hover: #D60041;
+  --theme-accent-glow: rgba(255, 0, 82, 0.08);
 }
 
 /* Set sophisticated luxury typography and scrolling defaults */
@@ -21,6 +21,11 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Increase font weight of all P elements across the app */
+  p {
+    font-weight: 450 !important;
   }
 }
 

@@ -139,7 +139,7 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
           <div className="py-24 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto">
             <Sparkles className="w-10 h-10 text-stone-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-[var(--theme-text-primary)] mb-2">No items match your criteria</h3>
-            <p className="text-xs text-[var(--theme-text-secondary)] px-6 font-light">
+            <p className="text-xs text-[var(--theme-text-secondary)] px-6 font-medium">
               We couldn't find any premium formulas matches. Try resetting your search term or filtering categories.
             </p>
             <button
@@ -233,7 +233,7 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
                   <div className="space-y-4 mb-8">
                     <div>
                       <h4 className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Description</h4>
-                      <p className="text-sm text-[var(--theme-text-secondary)] font-light leading-relaxed">
+                      <p className="text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed">
                         {selectedProduct.description}
                       </p>
                     </div>
@@ -258,7 +258,7 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
                 {/* Footnote Warning regarding Non-Ecommerce constraint */}
                 <div className="pt-6 border-t border-[var(--theme-border)] flex gap-3 items-start bg-[var(--theme-accent-glow)] p-3.5 border-l-2 border-[var(--theme-accent)]">
                   <ShieldAlert className="w-4 h-4 text-[var(--theme-accent)] shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-[var(--theme-text-primary)] leading-normal font-light">
+                  <p className="text-[11px] text-[var(--theme-text-primary)] leading-normal font-medium">
                     <strong>Exclusive Catalog Mode:</strong> Booking or direct e-commerce shopping is deactivated. To obtain this item, visit an authorized Riya Cosmetics brick-and-mortar luxury salon.
                   </p>
                 </div>

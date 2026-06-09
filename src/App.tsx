@@ -166,10 +166,10 @@ export default function App() {
       {/* Shared Premium footer section */}
       <footer id="riya-footer" className="bg-[#FAF9F5] py-12 border-t border-[var(--theme-border)] text-center">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center gap-6">
-          <span className="text-sm font-light uppercase tracking-[0.3em] text-[var(--theme-text-primary)]">
+          <span className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-text-primary)]">
             Riya <span className="font-serif italic text-[var(--theme-accent)]">Cosmetics</span>
           </span>
-          <p className="text-xs text-[var(--theme-text-secondary)] max-w-lg font-light leading-relaxed">
+          <p className="text-xs text-[var(--theme-text-secondary)] max-w-lg font-medium leading-relaxed">
             Designed for retail indexing only. Direct purchases are not hosted here. Authenticated luxury styling solutions are available through salon counters.
           </p>
           <div className="border-t border-[var(--theme-border)] mt-8 pt-8 w-full flex flex-col md:flex-row items-center justify-between text-[10px] text-[var(--theme-text-muted)] font-mono tracking-widest uppercase">

@@ -198,7 +198,7 @@ export default function AdminPortal({
             <h2 className="text-xl font-light uppercase text-[var(--theme-text-primary)] tracking-widest">
               Secured Admin Portal
             </h2>
-            <p className="text-xs text-[var(--theme-text-secondary)] mt-2 font-light">
+            <p className="text-xs text-[var(--theme-text-secondary)] mt-2 font-medium">
               Enter administration system key to manage pricing lookbook
             </p>
           </div>
@@ -230,7 +230,7 @@ export default function AdminPortal({
             </div>
 
             {authError && (
-              <p className="text-xs text-red-800 font-light bg-red-50 py-2.5 px-3 border-l-2 border-red-500">
+              <p className="text-xs text-red-800 font-medium bg-red-50 py-2.5 px-3 border-l-2 border-red-500">
                 {authError}
               </p>
             )}
@@ -369,7 +369,7 @@ export default function AdminPortal({
                           <td className="py-4 px-6">
                             <div>
                               <p id={`admin-p-name-${p.id}`} className="font-semibold text-[var(--theme-text-primary)] tracking-wide">{p.name}</p>
-                              <p className="text-xs text-[var(--theme-text-muted)] line-clamp-1 max-w-sm font-light mt-0.5">{p.description}</p>
+                              <p className="text-xs text-[var(--theme-text-muted)] line-clamp-1 max-w-sm font-medium mt-0.5">{p.description}</p>
                             </div>
                           </td>
                           {/* Category Tag */}
@@ -628,7 +628,7 @@ export default function AdminPortal({
                 </div>
 
                 {formError && (
-                  <p className="text-xs text-red-800 font-light bg-red-50 py-2.5 px-3 border-l-2 border-red-500">
+                  <p className="text-xs text-red-800 font-medium bg-red-50 py-2.5 px-3 border-l-2 border-red-500">
                     {formError}
                   </p>
                 )}
@@ -668,7 +668,7 @@ export default function AdminPortal({
               <h3 className="text-lg font-semibold uppercase text-[var(--theme-text-primary)] tracking-wider mb-2">
                 Confirm Deletion
               </h3>
-              <p className="text-sm text-[var(--theme-text-secondary)] font-light leading-relaxed mb-6">
+              <p className="text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed mb-6">
                 Are you absolutely sure you want to remove <strong className="font-semibold text-red-600">"{deleteProductInfo.name}"</strong> from the luxury cosmetics catalogue? This action cannot be undone.
               </p>
 

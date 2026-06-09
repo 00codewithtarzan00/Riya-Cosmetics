@@ -30,16 +30,16 @@ export default function Navbar({
           }}
           className="flex items-center gap-1.5 xs:gap-2.5 cursor-pointer outline-none text-left group animate-fade-in max-w-[65%] sm:max-w-none"
         >
-          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full overflow-hidden border border-stone-300 bg-white flex items-center justify-center shrink-0">
+          <div className="w-[30px] h-[30px] rounded-full overflow-hidden border border-stone-300 bg-white flex items-center justify-center shrink-0">
             <img 
               src="https://lh3.googleusercontent.com/d/12xYSkAXMKVlTokEcoAtfPifcmc9VzXmu=s400" 
               alt="Riya Cosmetics" 
-              className="w-full h-full object-cover rounded-full"
+              className="w-[30px] h-[30px] object-cover rounded-full"
               referrerPolicy="no-referrer"
             />
           </div>
-          <span className="text-base xs:text-lg sm:text-xl md:text-2xl font-light text-[var(--theme-text-primary)] uppercase tracking-[0.1em] xs:tracking-[0.2em] md:tracking-[0.25em] truncate">
-            Riya <span className="font-serif italic text-[var(--theme-accent)]">Cosmetics</span>
+          <span className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-medium text-[var(--theme-text-primary)] uppercase tracking-[0.1em] xs:tracking-[0.2em] md:tracking-[0.25em] truncate">
+            Riya <span className="font-serif italic text-[var(--theme-accent)] font-light">Cosmetics</span>
           </span>
         </button>
 
