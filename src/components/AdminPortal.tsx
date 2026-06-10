@@ -500,29 +500,29 @@ export default function AdminPortal({
         {isModalOpen && (
           <div 
             id="admin-form-modal"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
           >
             <div 
-              className="bg-white border border-[var(--theme-border)] w-full max-w-lg rounded-none p-6 md:p-8 relative shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="bg-white border border-[var(--theme-border)] w-full max-w-lg rounded-none p-4 sm:p-5 relative shadow-xl overflow-y-auto max-h-[95vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Icon */}
               <button
                 id="close-admin-form-modal"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-stone-400 hover:text-[var(--theme-text-primary)] p-1 cursor-pointer font-medium text-xs tracking-wider uppercase"
+                className="absolute top-3.5 right-4 text-stone-400 hover:text-[var(--theme-text-primary)] p-1 cursor-pointer font-bold text-[10px] tracking-widest uppercase transition-colors"
               >
                 Cancel
               </button>
 
-              <h3 className="text-xl font-light uppercase text-[var(--theme-text-primary)] tracking-widest mb-6 pb-2 border-b border-[var(--theme-border)]">
+              <h3 className="text-sm sm:text-base font-bold uppercase text-[var(--theme-text-primary)] tracking-widest mb-3 pb-1.5 border-b border-[var(--theme-border)]">
                 {editingProduct ? 'Edit Formula Details' : 'Add New Cosmetic Formula'}
               </h3>
 
-              <form onSubmit={handleSaveProduct} className="space-y-5">
+              <form onSubmit={handleSaveProduct} className="space-y-3">
                 {/* Product Name */}
                 <div>
-                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-2">
+                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                     Product Title *
                   </label>
                   <input
@@ -530,23 +530,23 @@ export default function AdminPortal({
                     type="text"
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    placeholder="e.g. Riya Velvet Liquid Eyeshadow"
-                    className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                    placeholder="e.g. Velvet Liquid Eyeshadow"
+                    className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2.5">
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-2">
-                      Product Lookup Category
+                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                      Category
                     </label>
                     <select
                       id="form-product-category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                      className="w-full px-2 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
                     >
                       <option value="Makeup">Makeup</option>
                       <option value="Skin Care">Skin Care</option>
@@ -560,16 +560,16 @@ export default function AdminPortal({
 
                   {/* MRP (INR) */}
                   <div>
-                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-2">
-                      Max Retail Price (MRP) *
+                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                      MRP (₹) *
                     </label>
                     <input
                       id="form-product-mrp"
                       type="number"
                       value={formMrp}
                       onChange={(e) => setFormMrp(e.target.value)}
-                      placeholder="e.g. 1500"
-                      className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      placeholder="MRP"
+                      className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -577,16 +577,16 @@ export default function AdminPortal({
 
                   {/* SP (INR) */}
                   <div>
-                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-2">
-                      Selling Price (SP) *
+                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                      SP (₹) *
                     </label>
                     <input
                       id="form-product-sp"
                       type="number"
                       value={formSp}
                       onChange={(e) => setFormSp(e.target.value)}
-                      placeholder="e.g. 1250"
-                      className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      placeholder="SP"
+                      className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -595,7 +595,7 @@ export default function AdminPortal({
 
                 {/* Narrative description */}
                 <div>
-                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-2">
+                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                     Details / Formula Description *
                   </label>
                   <textarea
@@ -603,22 +603,19 @@ export default function AdminPortal({
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Briefly describe formula highlights, finish type, and wear time..."
-                    rows={3}
-                    className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-none"
+                    rows={2}
+                    className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-none"
                     required
                   />
                 </div>
 
                 {/* Unsplash custom url option */}
                 <div>
-                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1.5">
-                    Unsplash Image URL
+                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    Unsplash Image URL <span className="text-stone-400 font-light lowercase">(optional)</span>
                   </label>
-                  <span className="block text-[10px] text-stone-400 mb-2 font-light">
-                    Leaving this empty will auto-assign a high-resolution beauty template for "{formCategory}"
-                  </span>
-                  <div className="flex gap-4 items-start">
-                    <div className="w-16 h-20 bg-[var(--theme-bg)] border border-[var(--theme-border)] overflow-hidden shrink-0 flex items-center justify-center relative">
+                  <div className="flex gap-3 items-center">
+                    <div className="w-10 h-10 bg-[var(--theme-bg)] border border-[var(--theme-border)] overflow-hidden shrink-0 flex items-center justify-center relative">
                       {(() => {
                         const previewUrl = formImage.trim() !== '' 
                           ? formImage.trim() 
@@ -646,33 +643,30 @@ export default function AdminPortal({
                         value={formImage}
                         onChange={(e) => setFormImage(e.target.value)}
                         placeholder="https://images.unsplash.com/photo-..."
-                        className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                        className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       />
-                      <span className="block text-[10px] text-stone-400 mt-1.5 font-light">
-                        {formImage.trim() !== '' ? '⚡ Custom URL preview active' : '✦ Default category template preview active'}
-                      </span>
                     </div>
                   </div>
                 </div>
 
                 {formError && (
-                  <p className="text-xs text-red-800 font-medium bg-red-50 py-2.5 px-3 border-l-2 border-red-500">
+                  <p className="text-xs text-red-800 font-medium bg-red-50 py-1.5 px-2.5 border-l-2 border-red-500 my-1">
                     {formError}
                   </p>
                 )}
 
-                <div className="flex gap-3 pt-4 border-t border-[var(--theme-border)]">
+                <div className="flex gap-2.5 pt-3 border-t border-[var(--theme-border)]">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="w-1/2 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                    className="w-1/2 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     id="form-product-save"
-                    className="w-1/2 py-3 bg-[var(--theme-accent)] text-white font-semibold text-xs tracking-wider uppercase hover:bg-[var(--theme-accent-hover)] transition-colors cursor-pointer"
+                    className="w-1/2 py-2 bg-[var(--theme-accent)] text-white font-semibold text-xs tracking-wider uppercase hover:bg-[var(--theme-accent-hover)] transition-colors cursor-pointer"
                   >
                     {editingProduct ? 'Save Changes' : 'Create Item'}
                   </button>
