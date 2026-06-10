@@ -34,7 +34,7 @@ export default function Navbar({
             <img 
               src="https://lh3.googleusercontent.com/d/12xYSkAXMKVlTokEcoAtfPifcmc9VzXmu=s400" 
               alt="Riya Cosmetics" 
-              className="w-[30px] h-[30px] object-cover rounded-full"
+              className="w-[18px] h-[18px] object-contain"
               referrerPolicy="no-referrer"
             />
           </div>
