@@ -1,4 +1,5 @@
 import {Eye} from 'lucide-react';
+import {useState} from 'react';
 
 export interface Product {
   id: string | number;
@@ -20,6 +21,8 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
   const mrpVal = product.mrp || product.priceInINR || 0;
   const spVal = product.sp || product.priceInINR || 0;
   const discountPercent = (mrpVal > 0 && mrpVal > spVal) ? Math.round(((mrpVal - spVal) / mrpVal) * 100) : 0;
+  
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <div 
@@ -28,13 +31,22 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
       className="group relative bg-white border border-[var(--theme-border)] rounded-none overflow-hidden transition-all duration-500 hover:border-[var(--theme-accent)] flex flex-col justify-between shadow-xs cursor-pointer"
     >
       {/* Product Image Section */}
-      <div className="relative overflow-hidden aspect-[4/5] bg-[var(--theme-bg)]">
+      <div className="relative overflow-hidden aspect-[4/5] bg-stone-100 flex items-center justify-center">
         <img 
           src={product.image} 
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          onLoad={() => setImageLoaded(true)}
+          className={`w-full h-full object-cover transition-all duration-1000 ease-out group-hover:scale-105 ${
+            imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+          }`}
           loading="lazy"
         />
+        {/* Elegant Shimmer Skeleton Overlay when loading */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-stone-100 animate-pulse flex items-center justify-center">
+            <span className="text-[10px] uppercase tracking-widest text-stone-400 font-mono">Formula loading...</span>
+          </div>
+        )}
         {/* Dynamic Discount Sticker Stamp */}
         {discountPercent > 0 && (
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-red-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-md z-10 animate-pulse">

@@ -10,13 +10,16 @@ export default function App() {
   const [currentView, setView] = useState<'catalog' | 'admin'>('catalog');
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Set up real-time connection and active synchronization subscription
   useEffect(() => {
     const unsubscribe = subscribeToProducts((prodList) => {
       setProducts(prodList);
+      setIsLoading(false);
     }, (error) => {
       console.error('Real-time sync error:', error);
+      setIsLoading(false);
     });
 
     return () => {
@@ -62,7 +65,7 @@ export default function App() {
       {/* Main rendering area */}
       {currentView === 'catalog' ? (
         /* Public interactive catalog lists */
-        <ProductCatalog products={products} />
+        <ProductCatalog products={products} isLoading={isLoading} />
       ) : (
         /* Administration Guarded Screen space */
         <AdminPortal 

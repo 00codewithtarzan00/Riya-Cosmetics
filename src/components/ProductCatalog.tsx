@@ -1,16 +1,56 @@
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useEffect, useRef} from 'react';
 import ProductCard, {Product} from './ProductCard.tsx';
 import {Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert} from 'lucide-react';
 
-interface ProductCatalogProps {
-  products: Product[];
+function ProductCardSkeleton() {
+  return (
+    <div className="bg-white border border-[var(--theme-border)] rounded-none overflow-hidden flex flex-col justify-between shadow-xs animate-pulse">
+      {/* Product Image Section Skeleton */}
+      <div className="relative aspect-[4/5] bg-stone-100 flex items-center justify-center">
+        <div className="text-center px-4">
+          <span className="text-[10px] uppercase tracking-widest text-stone-300 font-mono">Curated Formulations...</span>
+        </div>
+      </div>
+
+      {/* Content Section Skeleton */}
+      <div className="p-3 sm:p-5 flex flex-col flex-grow justify-between space-y-3 sm:space-y-4">
+        <div className="space-y-2">
+          {/* Category */}
+          <div className="h-2.5 bg-stone-200 w-1/3 rounded-none" />
+          {/* Title */}
+          <div className="h-3.5 bg-stone-200 w-3/4 rounded-none" />
+          {/* Description line 1 & 2 */}
+          <div className="h-3 bg-stone-100 w-full rounded-none" />
+          <div className="h-3 bg-stone-100 w-5/6 rounded-none" />
+        </div>
+
+        {/* Price & Action Button */}
+        <div className="mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-[var(--theme-border)] flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <div className="h-3 bg-stone-100/70 w-8 rounded-none" />
+            <div className="h-4 bg-stone-200 w-12 rounded-none" />
+          </div>
+          <div className="h-3 bg-stone-200 w-10 rounded-none animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default function ProductCatalog({products}: ProductCatalogProps) {
+interface ProductCatalogProps {
+  products: Product[];
+  isLoading?: boolean;
+}
+
+export default function ProductCatalog({products, isLoading = false}: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('default');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const [visibleCount, setVisibleCount] = useState<number>(6);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const categories = ['All', 'Makeup', 'Skin Care', 'Hair Care', 'Body Care', 'Undergarments', 'Baby Care', 'Bangles & Ornaments'];
 
@@ -52,6 +92,45 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
 
     return result;
   }, [products, selectedCategory, searchQuery, sortBy]);
+
+  // Highlight only sliced subset of loaded items
+  const visibleProducts = useMemo(() => {
+    return filteredAndSortedProducts.slice(0, visibleCount);
+  }, [filteredAndSortedProducts, visibleCount]);
+
+  // Reset pagination state when filters or categories shift
+  useEffect(() => {
+    setVisibleCount(6);
+    setIsLoadingMore(false);
+  }, [selectedCategory, searchQuery, sortBy]);
+
+  // Infinite Scroll dynamic triggers
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && visibleCount < filteredAndSortedProducts.length) {
+          setIsLoadingMore(true);
+          const timer = setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + 6, filteredAndSortedProducts.length));
+            setIsLoadingMore(false);
+          }, 600);
+          return () => clearTimeout(timer);
+        }
+      },
+      {
+        rootMargin: '120px', // start fetching prior to page-end collision
+      }
+    );
+
+    observer.observe(sentinel);
+    return () => {
+      observer.unobserve(sentinel);
+    };
+  }, [sentinelRef.current, visibleCount, filteredAndSortedProducts.length]);
 
   return (
     <div id="catalog-section" className="pt-28 pb-20 bg-[var(--theme-bg)] min-h-screen">
@@ -125,7 +204,13 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
         </div>
 
         {/* Product Grid */}
-        {products.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8 animate-pulse">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <ProductCardSkeleton key={`initial-skeleton-${index}`} />
+            ))}
+          </div>
+        ) : products.length === 0 ? (
           <div className="py-24 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto px-6">
             <Sparkles className="w-10 h-10 text-[var(--theme-accent)] mx-auto mb-5 animate-pulse" />
             <h3 className="text-xl font-light text-[var(--theme-text-primary)] uppercase tracking-widest mb-3">Live Lookbook Empty</h3>
@@ -134,14 +219,68 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
             </p>
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
-            {filteredAndSortedProducts.map((p) => (
-              <ProductCard 
-                key={p.id} 
-                product={p} 
-                onViewDetails={setSelectedProduct} 
-              />
-            ))}
+          <div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8 transition-opacity duration-300">
+              {visibleProducts.map((p) => (
+                <ProductCard 
+                  key={p.id} 
+                  product={p} 
+                  onViewDetails={setSelectedProduct} 
+                />
+              ))}
+
+              {/* Keep the product boxes placeholder grid alive while loading more */}
+              {isLoadingMore && (
+                Array.from({ length: 6 }).map((_, index) => (
+                  <ProductCardSkeleton key={`lookbook-skeleton-${index}`} />
+                ))
+              )}
+            </div>
+
+            {/* sentinel element for triggering infinite scrolling */}
+            <div ref={sentinelRef} className="h-6 mt-4" />
+
+            {/* Premium Loading Spinner feedback */}
+            {isLoadingMore && (
+              <div id="infinite-scroll-spinner" className="py-8 text-center flex flex-col items-center justify-center gap-2.5 animate-pulse">
+                <div className="flex items-center gap-1.5 justify-center">
+                  <div className="w-2.5 h-2.5 bg-[var(--theme-accent)] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-2.5 h-2.5 bg-[var(--theme-accent)] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-2.5 h-2.5 bg-[var(--theme-accent)] rounded-full animate-bounce" />
+                </div>
+                <span className="text-[10px] uppercase tracking-[0.25em] text-stone-400 font-mono font-bold">
+                  Curating cosmetic formulas...
+                </span>
+              </div>
+            )}
+
+            {/* Optional Safe Manual Toggle */}
+            {!isLoadingMore && visibleCount < filteredAndSortedProducts.length && (
+              <div className="text-center mt-6">
+                <button
+                  id="btn-load-more"
+                  onClick={() => {
+                    setIsLoadingMore(true);
+                    setTimeout(() => {
+                      setVisibleCount((prev) => Math.min(prev + 6, filteredAndSortedProducts.length));
+                      setIsLoadingMore(false);
+                    }, 500);
+                  }}
+                  className="px-8 py-3 bg-stone-900 text-white font-semibold text-xs tracking-widest uppercase transition-all duration-300 hover:bg-[var(--theme-accent)] cursor-pointer hover:text-white"
+                >
+                  Load More Items
+                </button>
+              </div>
+            )}
+
+            {/* Ended message */}
+            {visibleCount >= filteredAndSortedProducts.length && filteredAndSortedProducts.length > 6 && (
+              <div className="py-12 text-center border-t border-[var(--theme-border)] mt-12 animate-fade-in">
+                <p className="text-[10px] uppercase font-mono tracking-[0.3em] text-[var(--theme-text-muted)] font-medium">
+                  ✦ You have viewed all curated formulations ✦
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-24 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto">
