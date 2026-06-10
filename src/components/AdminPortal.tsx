@@ -500,17 +500,17 @@ export default function AdminPortal({
         {isModalOpen && (
           <div 
             id="admin-form-modal"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md"
           >
             <div 
-              className="bg-white border border-[var(--theme-border)] w-full max-w-lg rounded-none p-4 sm:p-5 relative shadow-xl overflow-y-auto max-h-[95vh] flex flex-col"
+              className="bg-white border border-[var(--theme-border)] w-full max-w-2xl rounded-none p-4 sm:p-6 relative shadow-2xl overflow-y-auto max-h-[95vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Icon */}
               <button
                 id="close-admin-form-modal"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-3.5 right-4 text-stone-400 hover:text-[var(--theme-text-primary)] p-1 cursor-pointer font-bold text-[10px] tracking-widest uppercase transition-colors"
+                className="absolute top-4 right-4 text-stone-400 hover:text-[var(--theme-text-primary)] p-1 cursor-pointer font-bold text-[10px] tracking-widest uppercase transition-colors"
               >
                 Cancel
               </button>
@@ -522,7 +522,7 @@ export default function AdminPortal({
               <form onSubmit={handleSaveProduct} className="space-y-3">
                 {/* Product Name */}
                 <div>
-                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                     Product Title *
                   </label>
                   <input
@@ -531,22 +531,22 @@ export default function AdminPortal({
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. Velvet Liquid Eyeshadow"
-                    className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                    className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-3 gap-3">
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                       Category
                     </label>
                     <select
                       id="form-product-category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full px-2 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                      className="w-full px-2 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
                     >
                       <option value="Makeup">Makeup</option>
                       <option value="Skin Care">Skin Care</option>
@@ -560,7 +560,7 @@ export default function AdminPortal({
 
                   {/* MRP (INR) */}
                   <div>
-                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                       MRP (₹) *
                     </label>
                     <input
@@ -569,7 +569,7 @@ export default function AdminPortal({
                       value={formMrp}
                       onChange={(e) => setFormMrp(e.target.value)}
                       placeholder="MRP"
-                      className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -577,7 +577,7 @@ export default function AdminPortal({
 
                   {/* SP (INR) */}
                   <div>
-                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                       SP (₹) *
                     </label>
                     <input
@@ -586,7 +586,7 @@ export default function AdminPortal({
                       value={formSp}
                       onChange={(e) => setFormSp(e.target.value)}
                       placeholder="SP"
-                      className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -595,7 +595,7 @@ export default function AdminPortal({
 
                 {/* Narrative description */}
                 <div>
-                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                     Details / Formula Description *
                   </label>
                   <textarea
@@ -604,14 +604,14 @@ export default function AdminPortal({
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Briefly describe formula highlights, finish type, and wear time..."
                     rows={2}
-                    className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-none"
+                    className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-none"
                     required
                   />
                 </div>
 
                 {/* Unsplash custom url option */}
                 <div>
-                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
                     Unsplash Image URL <span className="text-stone-400 font-light lowercase">(optional)</span>
                   </label>
                   <div className="flex gap-3 items-center">
@@ -643,7 +643,7 @@ export default function AdminPortal({
                         value={formImage}
                         onChange={(e) => setFormImage(e.target.value)}
                         placeholder="https://images.unsplash.com/photo-..."
-                        className="w-full px-3 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                        className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       />
                     </div>
                   </div>
@@ -659,7 +659,7 @@ export default function AdminPortal({
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="w-1/2 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                    className="w-1/2 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
