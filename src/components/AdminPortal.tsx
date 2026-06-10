@@ -617,14 +617,42 @@ export default function AdminPortal({
                   <span className="block text-[10px] text-stone-400 mb-2 font-light">
                     Leaving this empty will auto-assign a high-resolution beauty template for "{formCategory}"
                   </span>
-                  <input
-                    id="form-product-image"
-                    type="url"
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
-                  />
+                  <div className="flex gap-4 items-start">
+                    <div className="w-16 h-20 bg-[var(--theme-bg)] border border-[var(--theme-border)] overflow-hidden shrink-0 flex items-center justify-center relative">
+                      {(() => {
+                        const previewUrl = formImage.trim() !== '' 
+                          ? formImage.trim() 
+                          : categoryImagePresets[formCategory];
+                        
+                        return previewUrl ? (
+                          <img 
+                            src={previewUrl} 
+                            alt="Formula Preview" 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=200';
+                            }}
+                          />
+                        ) : (
+                          <span className="text-[10px] text-[var(--theme-text-muted)] font-mono">No Img</span>
+                        );
+                      })()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <input
+                        id="form-product-image"
+                        type="url"
+                        value={formImage}
+                        onChange={(e) => setFormImage(e.target.value)}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        className="w-full px-4 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      />
+                      <span className="block text-[10px] text-stone-400 mt-1.5 font-light">
+                        {formImage.trim() !== '' ? '⚡ Custom URL preview active' : '✦ Default category template preview active'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {formError && (
