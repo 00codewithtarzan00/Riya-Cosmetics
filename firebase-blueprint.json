@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Luxury cosmetics product in the catalogue",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique product ID" },
+        "name": { "type": "string", "description": "Product name" },
+        "category": { "type": "string", "description": "Cosmetics category" },
+        "priceInINR": { "type": "number", "description": "Actual retail price in Indian Rupees" },
+        "mrp": { "type": "number", "description": "Maximum Retail Price" },
+        "sp": { "type": "number", "description": "Sale Price" },
+        "description": { "type": "string", "description": "Elegant product description" },
+        "image": { "type": "string", "description": "Image URL of the cosmetic product" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was added" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was updated" }
+      },
+      "required": ["name", "category", "priceInINR", "mrp", "sp", "description", "image"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Catalog of precious cosmetics and makeup items"
+    }
+  }
+}

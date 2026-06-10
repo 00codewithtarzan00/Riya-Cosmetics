@@ -125,7 +125,15 @@ export default function ProductCatalog({products}: ProductCatalogProps) {
         </div>
 
         {/* Product Grid */}
-        {filteredAndSortedProducts.length > 0 ? (
+        {products.length === 0 ? (
+          <div className="py-24 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto px-6">
+            <Sparkles className="w-10 h-10 text-[var(--theme-accent)] mx-auto mb-5 animate-pulse" />
+            <h3 className="text-xl font-light text-[var(--theme-text-primary)] uppercase tracking-widest mb-3">Live Lookbook Empty</h3>
+            <p className="text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed max-w-md mx-auto">
+              No product formulas are currently registered in our live catalogue database. As an authorized administrator, please navigate to the Admin Portal to curate and publish your luxury cosmetics list.
+            </p>
+          </div>
+        ) : filteredAndSortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
             {filteredAndSortedProducts.map((p) => (
               <ProductCard 

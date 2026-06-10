@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Products Collection Rules
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update: if (
+        request.resource.data.name is string &&
+        request.resource.data.name.size() <= 200 &&
+        request.resource.data.category is string &&
+        request.resource.data.category.size() <= 100 &&
+        request.resource.data.description is string &&
+        request.resource.data.description.size() <= 3000 &&
+        request.resource.data.image is string &&
+        request.resource.data.image.size() <= 2083 &&
+        request.resource.data.priceInINR is number &&
+        request.resource.data.mrp is number &&
+        request.resource.data.sp is number
+      );
+      allow delete: if true;
+    }
+  }
+}
