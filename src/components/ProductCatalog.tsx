@@ -171,7 +171,10 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
           </div>
 
           {/* Categorization Tabs */}
-          <div className="flex items-center gap-2 border-b border-[var(--theme-border)] pb-4 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap">
+          <div 
+            style={{ fontStyle: 'normal', fontWeight: 'normal', fontFamily: 'Arial' }}
+            className="flex items-center gap-2 border-b border-[var(--theme-border)] pb-4 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap"
+          >
             <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--theme-accent)] mr-2 shrink-0 hidden md:block" />
             <div className="flex items-center gap-2 overflow-visible md:flex-wrap pb-0.5 md:pb-0">
               {categories.map((cat) => {
@@ -212,7 +215,10 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 transition-opacity duration-300">
+            <div 
+              style={{ fontFamily: 'Arial' }}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 transition-opacity duration-300"
+            >
               {visibleProducts.map((p) => (
                 <ProductCard 
                   key={p.id} 
