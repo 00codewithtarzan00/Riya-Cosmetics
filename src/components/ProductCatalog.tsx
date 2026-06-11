@@ -8,29 +8,21 @@ function ProductCardSkeleton() {
       {/* Product Image Section Skeleton */}
       <div className="relative aspect-[4/5] bg-stone-100 flex items-center justify-center">
         <div className="text-center px-4">
-          <span className="text-[10px] uppercase tracking-widest text-stone-300 font-mono">Curated Formulations...</span>
+          <span className="text-[9px] uppercase tracking-widest text-stone-300 font-mono">Curating...</span>
         </div>
       </div>
 
       {/* Content Section Skeleton */}
-      <div className="p-3 sm:p-5 flex flex-col flex-grow justify-between space-y-3 sm:space-y-4">
-        <div className="space-y-2">
-          {/* Category */}
-          <div className="h-2.5 bg-stone-200 w-1/3 rounded-none" />
+      <div className="p-2 sm:p-3 flex flex-col flex-grow justify-between space-y-2">
+        <div className="space-y-1">
           {/* Title */}
-          <div className="h-3.5 bg-stone-200 w-3/4 rounded-none" />
-          {/* Description line 1 & 2 */}
-          <div className="h-3 bg-stone-100 w-full rounded-none" />
-          <div className="h-3 bg-stone-100 w-5/6 rounded-none" />
+          <div className="h-3 bg-stone-200 w-3/4 rounded-none" />
         </div>
 
         {/* Price & Action Button */}
-        <div className="mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-[var(--theme-border)] flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <div className="h-3 bg-stone-100/70 w-8 rounded-none" />
-            <div className="h-4 bg-stone-200 w-12 rounded-none" />
-          </div>
-          <div className="h-3 bg-stone-200 w-10 rounded-none animate-pulse" />
+        <div className="mt-2 pt-2 border-t border-[var(--theme-border)] flex items-center justify-between">
+          <div className="h-4 bg-stone-200 w-12 rounded-none" />
+          <div className="h-3 bg-stone-200 w-10 rounded-none" />
         </div>
       </div>
     </div>
@@ -205,7 +197,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
 
         {/* Product Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8 animate-pulse">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 animate-pulse">
             {Array.from({ length: 6 }).map((_, index) => (
               <ProductCardSkeleton key={`initial-skeleton-${index}`} />
             ))}
@@ -220,7 +212,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8 transition-opacity duration-300">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 transition-opacity duration-300">
               {visibleProducts.map((p) => (
                 <ProductCard 
                   key={p.id} 
@@ -322,11 +314,11 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
               </button>
 
               {/* Modal Left Column: Static & Smaller Image Box */}
-              <div className="w-full md:w-64 h-64 md:h-auto shrink-0 bg-[var(--theme-bg)] relative overflow-hidden">
+              <div className="w-full md:w-64 h-64 md:h-auto shrink-0 bg-[var(--theme-bg)] relative overflow-hidden flex items-center justify-center p-4">
                 <img 
                   src={selectedProduct.image} 
                   alt={selectedProduct.name} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain object-center"
                 />
                 <div className="absolute top-4 left-4 bg-[var(--theme-accent)] text-white px-3 py-1 text-[10px] tracking-widest uppercase font-bold">
                   {selectedProduct.category}

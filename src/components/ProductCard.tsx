@@ -70,31 +70,23 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
       </div>
 
       {/* Content Section */}
-      <div className="p-3 sm:p-5 flex flex-col flex-grow justify-between">
-        <div className="space-y-1 sm:space-y-2">
-          {/* Category */}
-          <span className="text-[9px] sm:text-[10px] tracking-[0.18em] sm:tracking-[0.25em] text-[var(--theme-accent)] uppercase font-bold">
-            {product.category}
-          </span>
+      <div className="p-2 sm:p-3 flex flex-col flex-grow justify-between">
+        <div className="space-y-1">
           {/* Title */}
-          <h3 className="text-xs sm:text-sm font-semibold text-[var(--theme-text-primary)] tracking-wide group-hover:text-[var(--theme-accent)] transition-colors duration-300 line-clamp-2">
+          <h3 className="text-[11px] sm:text-xs font-semibold text-[var(--theme-text-primary)] tracking-wide group-hover:text-[var(--theme-accent)] transition-colors duration-300 line-clamp-2">
             {product.name}
           </h3>
-          {/* Limit description and keep it compact */}
-          <p className="text-[11px] sm:text-xs text-[var(--theme-text-secondary)] font-medium line-clamp-2 leading-relaxed">
-            {product.description}
-          </p>
         </div>
 
         {/* Pricing & Primary Action */}
-        <div className="mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-[var(--theme-border)] flex flex-wrap items-center justify-between gap-1.5">
+        <div className="mt-2 pt-2 border-t border-[var(--theme-border)] flex flex-wrap items-center justify-between gap-1">
           <div className="flex flex-col items-start leading-none gap-0.5">
             {discountPercent > 0 && (
-              <span className="text-[10px] sm:text-xs text-[var(--theme-text-muted)] line-through decoration-red-500/40">
+              <span className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] line-through decoration-red-500/40">
                 ₹{mrpVal.toLocaleString('en-IN')}
               </span>
             )}
-            <span className="text-sm sm:text-base font-bold text-[var(--theme-text-primary)] tracking-wide">
+            <span className="text-xs sm:text-sm font-bold text-[var(--theme-text-primary)] tracking-wide">
               ₹{spVal.toLocaleString('en-IN')}
             </span>
           </div>
@@ -104,7 +96,7 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
               e.stopPropagation();
               onViewDetails(product);
             }}
-            className="text-[10px] sm:text-xs tracking-wider sm:tracking-widest text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 sm:gap-1 cursor-pointer"
+            className="text-[9px] sm:text-[10px] tracking-wider text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 cursor-pointer"
           >
             Details 
             <span className="transform translate-x-0 group-hover:translate-x-1 transition-transform duration-300">→</span>
