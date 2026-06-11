@@ -309,7 +309,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-md animate-fade-in"
           >
             <div 
-              className="relative w-full max-w-4xl bg-white border border-[var(--theme-border)] text-left outline-none overflow-hidden max-h-[90vh] flex flex-col md:flex-row shadow-2xl rounded-none"
+              className="relative w-full max-w-2xl bg-white border border-[var(--theme-border)] text-left outline-none overflow-hidden max-h-[90vh] flex flex-col md:flex-row shadow-2xl rounded-none"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -321,8 +321,8 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Modal Left Column: Large Image */}
-              <div className="w-full md:w-1/2 aspect-square md:aspect-auto md:h-full bg-[var(--theme-bg)] relative max-h-[40vh] md:max-h-full">
+              {/* Modal Left Column: Static & Smaller Image Box */}
+              <div className="w-full md:w-64 h-64 md:h-auto shrink-0 bg-[var(--theme-bg)] relative overflow-hidden">
                 <img 
                   src={selectedProduct.image} 
                   alt={selectedProduct.name} 
@@ -334,15 +334,15 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
               </div>
 
               {/* Modal Right Column: Deep Product Details */}
-              <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto flex flex-col justify-between max-h-[50vh] md:max-h-full">
+              <div className="w-full md:flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto flex flex-col justify-between max-h-[50vh] md:max-h-full">
                 <div>
-                  <h3 className="text-2xl md:text-3xl font-light text-[var(--theme-text-primary)] uppercase tracking-wide leading-tight mb-4">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-light text-[var(--theme-text-primary)] uppercase tracking-wide leading-tight mb-2">
                     {selectedProduct.name}
                   </h3>
                   
                   {/* Absolute Price Listing */}
-                  <div className="mb-6 pb-4 border-b border-[var(--theme-border)]">
-                    <div className="flex items-center gap-3 flex-wrap">
+                  <div className="mb-3.5 pb-2.5 border-b border-[var(--theme-border)]">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {(() => {
                         const mrpVal = selectedProduct.mrp || selectedProduct.priceInINR || 0;
                         const spVal = selectedProduct.sp || selectedProduct.priceInINR || 0;
@@ -351,59 +351,36 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
                         return (
                           <div className="flex flex-col">
                             {discountPercent > 0 && (
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <span className="text-sm text-[var(--theme-text-muted)] line-through">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <span className="text-xs text-[var(--theme-text-muted)] line-through">
                                   MRP: ₹{mrpVal.toLocaleString('en-IN')}
                                 </span>
-                                <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 font-bold uppercase tracking-wider rounded-none">
+                                <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 font-bold uppercase tracking-wider rounded-none">
                                   {discountPercent}% OFF
                                 </span>
                               </div>
                             )}
-                            <span className="text-3xl font-bold text-[var(--theme-text-primary)] tracking-wide">
+                            <span className="text-2xl font-bold text-[var(--theme-text-primary)] tracking-wide">
                               ₹{spVal.toLocaleString('en-IN')}
                             </span>
                           </div>
                         );
                       })()}
                     </div>
-                    <span className="block mt-2.5 text-xs text-[var(--theme-text-muted)] font-light italic">
+                    <span className="block mt-1 text-[10px] text-[var(--theme-text-muted)] font-light italic">
                       (Inclusive of all taxes - Curated lookbook value)
                     </span>
                   </div>
 
                   {/* Product Narrative */}
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-3">
                     <div>
-                      <h4 className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Description</h4>
-                      <p className="text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed">
+                      <h4 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Description</h4>
+                      <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed">
                         {selectedProduct.description}
                       </p>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-4">
-                      <div>
-                        <h4 className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1.5">Best Suited For</h4>
-                        <div className="flex items-center gap-1.5 text-xs text-[var(--theme-text-secondary)] font-light">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[var(--theme-accent)]" /> All Skin Types
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1.5">Application</h4>
-                        <div className="flex items-center gap-1.5 text-xs text-[var(--theme-text-secondary)] font-light">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[var(--theme-accent)]" /> Smooth professional finish
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                </div>
-
-                {/* Footnote Warning regarding Non-Ecommerce constraint */}
-                <div className="pt-6 border-t border-[var(--theme-border)] flex gap-3 items-start bg-[var(--theme-accent-glow)] p-3.5 border-l-2 border-[var(--theme-accent)]">
-                  <ShieldAlert className="w-4 h-4 text-[var(--theme-accent)] shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-[var(--theme-text-primary)] leading-normal font-medium">
-                    <strong>Exclusive Catalog Mode:</strong> Booking or direct e-commerce shopping is deactivated. To obtain this item, visit an authorized Riya Cosmetics brick-and-mortar luxury salon.
-                  </p>
                 </div>
               </div>
             </div>
