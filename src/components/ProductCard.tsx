@@ -71,7 +71,13 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
 
       {/* Content Section */}
       <div className="p-2 sm:p-2.5 flex flex-col flex-grow justify-between bg-white text-left">
-        <div className="space-y-0.5">
+        <div className="space-y-1.5">
+          {/* Category */}
+          <div>
+            <span className="inline-block text-[8px] sm:text-[9px] uppercase tracking-wider text-[var(--theme-accent)] font-bold bg-[var(--theme-accent-glow)] px-2 py-0.5 rounded-xs">
+              {product.category}
+            </span>
+          </div>
           {/* Title */}
           <h3 className="text-xs sm:text-[13px] font-semibold text-[var(--theme-text-primary)] tracking-wide group-hover:text-[var(--theme-accent)] transition-colors duration-300 line-clamp-2 min-h-[2rem] leading-tight">
             {product.name}

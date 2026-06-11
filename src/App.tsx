@@ -6,6 +6,69 @@ import {Product} from './components/ProductCard.tsx';
 import {Heart} from 'lucide-react';
 import { subscribeToProducts, dbAddProduct, dbUpdateProduct, dbDeleteProduct } from './firebaseService.ts';
 
+const FALLBACK_PRODUCTS: Product[] = [
+  {
+    id: 'offline-pink-lipstick',
+    name: 'Matte Rose Velvet Lipstick',
+    category: 'Makeup',
+    priceInINR: 699,
+    mrp: 999,
+    sp: 699,
+    description: 'A luxurious deep pink liquid matte lipstick that provides a rich velvet finish and long-lasting hydration control. Curated for premium professional styling.',
+    image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    id: 'offline-glow-serum',
+    name: 'Vitamin-C Radiant Glow Serum',
+    category: 'Skin Care',
+    priceInINR: 899,
+    mrp: 1299,
+    sp: 899,
+    description: 'Enriched with natural Kakadu plum extracts, this lightweight active face serum brightens skin complexion and locks in glowing moisture.',
+    image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    id: 'offline-onion-oil',
+    name: 'Red Onion Professional Hair Revitalizer',
+    category: 'Hair Care',
+    priceInINR: 499,
+    mrp: 699,
+    sp: 499,
+    description: 'Infused with Red Onion extracts and nourishing Black Seed oil, this non-sticky tonic revitalizes roots and brings absolute sleek silkiness to your hair.',
+    image: 'https://images.unsplash.com/photo-1527799822367-a05eb5747737?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    id: 'offline-body-butter',
+    name: 'Creamy Shea Butter Intense Body Lotion',
+    category: 'Body Care',
+    priceInINR: 399,
+    mrp: 599,
+    sp: 399,
+    description: 'Pamper your skin with authentic rich African Shea Butter. Deeply hydrates extremely dry skin during active days, leaving a divine subtle coconut aroma.',
+    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    id: 'offline-baby-powder',
+    name: 'Gentle Care Natural Baby Powder',
+    category: 'Baby Care',
+    priceInINR: 249,
+    mrp: 349,
+    sp: 249,
+    description: "Talcum-free ultra-soft formula made with organic cornstarch and therapeutic lavender oil. Protects your baby's delicate skin folds with smooth love.",
+    image: 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    id: 'offline-gold-bangles',
+    name: 'Kundan Embedded Designer Gold Bangles',
+    category: 'Bangles & Ornaments',
+    priceInINR: 1899,
+    mrp: 2999,
+    sp: 1899,
+    description: 'Exquisite heavy gold plated bangle set styled with fine Kundan work and premium rubies. Perfect matching ornament for Indian bridal wear and luxury celebrations.',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600'
+  }
+];
+
 export default function App() {
   const [currentView, setView] = useState<'catalog' | 'admin'>('catalog');
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,10 +78,16 @@ export default function App() {
   // Set up real-time connection and active synchronization subscription
   useEffect(() => {
     const unsubscribe = subscribeToProducts((prodList) => {
-      setProducts(prodList);
+      if (prodList && prodList.length > 0) {
+        setProducts(prodList);
+      } else {
+        // Fallback if the collection is empty/offline
+        setProducts(FALLBACK_PRODUCTS);
+      }
       setIsLoading(false);
     }, (error) => {
       console.error('Real-time sync error:', error);
+      setProducts(FALLBACK_PRODUCTS);
       setIsLoading(false);
     });
 
