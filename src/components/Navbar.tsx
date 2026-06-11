@@ -49,19 +49,19 @@ export default function Navbar({
             <button
               id="admin-portal-open-btn"
               onClick={() => setView('admin')}
-              className="group flex items-center gap-2 px-4 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] text-xs tracking-wider uppercase font-medium hover:border-[var(--theme-accent)] transition-all duration-300 cursor-pointer"
+              className="group flex items-center justify-center p-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] hover:border-[var(--theme-accent)] transition-all duration-300 cursor-pointer"
+              title="Admin Portal"
             >
-              <Shield className="w-3.5 h-3.5 text-[var(--theme-accent)] transition-transform duration-300 group-hover:scale-110" />
-              Admin Portal
+              <Shield className="w-4 h-4 text-[var(--theme-accent)] transition-transform duration-300 group-hover:scale-110" />
             </button>
           ) : (
             <button
               id="public-catalog-return-btn"
               onClick={() => setView('catalog')}
-              className="group flex items-center gap-2 px-4 py-2 bg-[var(--theme-accent)] hover:bg-[var(--theme-accent-hover)] text-white text-xs tracking-wider uppercase font-bold transition-all duration-300 cursor-pointer"
+              className="group flex items-center justify-center p-3 bg-[var(--theme-accent)] hover:bg-[var(--theme-accent-hover)] text-white transition-all duration-300 cursor-pointer"
+              title="Return to Catalog"
             >
-              <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
-              Return To Catalog
+              <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
             </button>
           )}
         </div>
