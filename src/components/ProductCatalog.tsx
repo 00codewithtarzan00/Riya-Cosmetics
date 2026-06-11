@@ -6,7 +6,7 @@ function ProductCardSkeleton() {
   return (
     <div className="bg-white border border-[var(--theme-border)] rounded-none overflow-hidden flex flex-col justify-between shadow-xs animate-pulse">
       {/* Product Image Section Skeleton */}
-      <div className="relative aspect-[4/5] bg-stone-100 flex items-center justify-center">
+      <div className="relative aspect-[4/3] bg-stone-100 flex items-center justify-center">
         <div className="text-center px-4">
           <span className="text-[9px] uppercase tracking-widest text-stone-300 font-mono">Curating...</span>
         </div>

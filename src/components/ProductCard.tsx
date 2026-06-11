@@ -31,12 +31,12 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
       className="group relative bg-white border border-[var(--theme-border)] rounded-none overflow-hidden transition-all duration-500 hover:border-[var(--theme-accent)] flex flex-col justify-between shadow-xs cursor-pointer"
     >
       {/* Product Image Section */}
-      <div className="relative overflow-hidden aspect-[4/5] bg-stone-100 flex items-center justify-center">
+      <div className="relative overflow-hidden aspect-[4/3] bg-stone-50 flex items-center justify-center p-2 border-b border-[var(--theme-border)]/50">
         <img 
           src={product.image} 
           alt={product.name}
           onLoad={() => setImageLoaded(true)}
-          className={`w-full h-full object-cover transition-all duration-1000 ease-out group-hover:scale-105 ${
+          className={`w-full h-full object-contain transition-all duration-1000 ease-out group-hover:scale-105 ${
             imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
           loading="lazy"
@@ -44,12 +44,12 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
         {/* Elegant Shimmer Skeleton Overlay when loading */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-stone-100 animate-pulse flex items-center justify-center">
-            <span className="text-[10px] uppercase tracking-widest text-stone-400 font-mono">Formula loading...</span>
+            <span className="text-[9px] uppercase tracking-widest text-stone-400 font-mono">Formula loading...</span>
           </div>
         )}
         {/* Dynamic Discount Sticker Stamp */}
         {discountPercent > 0 && (
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-red-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-md z-10 animate-pulse">
+          <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-md z-10 animate-pulse">
             {discountPercent}% OFF
           </div>
         )}
@@ -61,32 +61,32 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
               e.stopPropagation();
               onViewDetails(product);
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white font-medium text-xs tracking-wider uppercase transition-all duration-300 hover:bg-[var(--theme-accent)] hover:text-white cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 text-white font-medium text-[10px] tracking-wider uppercase transition-all duration-300 hover:bg-[var(--theme-accent)] hover:text-white cursor-pointer"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3.5 h-3.5" />
             Quick View
           </button>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="p-2 sm:p-3 flex flex-col flex-grow justify-between">
-        <div className="space-y-1">
+      <div className="p-2 sm:p-2.5 flex flex-col flex-grow justify-between bg-white text-left">
+        <div className="space-y-0.5">
           {/* Title */}
-          <h3 className="text-[11px] sm:text-xs font-semibold text-[var(--theme-text-primary)] tracking-wide group-hover:text-[var(--theme-accent)] transition-colors duration-300 line-clamp-2">
+          <h3 className="text-xs sm:text-[13px] font-semibold text-[var(--theme-text-primary)] tracking-wide group-hover:text-[var(--theme-accent)] transition-colors duration-300 line-clamp-2 min-h-[2rem] leading-tight">
             {product.name}
           </h3>
         </div>
 
         {/* Pricing & Primary Action */}
-        <div className="mt-2 pt-2 border-t border-[var(--theme-border)] flex flex-wrap items-center justify-between gap-1">
-          <div className="flex flex-col items-start leading-none gap-0.5">
+        <div className="mt-1.5 pt-1.5 border-t border-[var(--theme-border)]/60 flex flex-wrap items-center justify-between gap-1">
+          <div className="flex flex-col items-start leading-none">
             {discountPercent > 0 && (
-              <span className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] line-through decoration-red-500/40">
+              <span className="text-[8px] sm:text-[9px] text-[var(--theme-text-muted)] line-through decoration-red-500/40 mb-0.5">
                 ₹{mrpVal.toLocaleString('en-IN')}
               </span>
             )}
-            <span className="text-xs sm:text-sm font-bold text-[var(--theme-text-primary)] tracking-wide">
+            <span className="text-xs sm:text-[13px] font-extrabold text-[var(--theme-text-primary)] tracking-wide">
               ₹{spVal.toLocaleString('en-IN')}
             </span>
           </div>
@@ -99,7 +99,7 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
             className="text-[9px] sm:text-[10px] tracking-wider text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 cursor-pointer"
           >
             Details 
-            <span className="transform translate-x-0 group-hover:translate-x-1 transition-transform duration-300">→</span>
+            <span className="transform translate-x-0 group-hover:translate-x-0.5 transition-transform duration-300">→</span>
           </button>
         </div>
       </div>
