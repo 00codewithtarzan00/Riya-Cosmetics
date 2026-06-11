@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+.font-georgia {
+  font-family: "Georgia", serif;
+}
+
 :root {
   --theme-bg: #FAF9F5;
   --theme-card-bg: #FFFFFF;

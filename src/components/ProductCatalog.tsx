@@ -171,10 +171,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
           </div>
 
           {/* Categorization Tabs */}
-          <div 
-            style={{ fontStyle: 'normal', fontWeight: 'normal', fontFamily: 'Arial' }}
-            className="flex items-center gap-2 border-b border-[var(--theme-border)] pb-4 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap"
-          >
+          <div className="flex items-center gap-2 border-b border-[var(--theme-border)] pb-4 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap">
             <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--theme-accent)] mr-2 shrink-0 hidden md:block" />
             <div className="flex items-center gap-2 overflow-visible md:flex-wrap pb-0.5 md:pb-0">
               {categories.map((cat) => {
@@ -184,7 +181,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
                     key={cat}
                     id={`cat-tab-${cat.toLowerCase()}`}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 sm:px-5 py-2 text-xs font-semibold tracking-wider uppercase transition-all duration-300 rounded-none cursor-pointer border whitespace-nowrap ${
+                    className={`px-4 sm:px-5 py-2 text-xs font-semibold tracking-wider capitalize transition-all duration-300 rounded-none cursor-pointer border whitespace-nowrap ${
                       isActive 
                         ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]' 
                         : 'bg-transparent text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border)]'
@@ -215,10 +212,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div>
-            <div 
-              style={{ fontFamily: 'Arial' }}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 transition-opacity duration-300"
-            >
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 transition-opacity duration-300">
               {visibleProducts.map((p) => (
                 <ProductCard 
                   key={p.id} 
@@ -334,7 +328,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
               {/* Modal Right Column: Deep Product Details */}
               <div className="w-full md:flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto flex flex-col justify-between max-h-[50vh] md:max-h-full">
                 <div>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-light text-[var(--theme-text-primary)] uppercase tracking-wide leading-tight mb-2">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-[var(--theme-text-primary)] tracking-wide leading-tight mb-2">
                     {selectedProduct.name}
                   </h3>
                   
