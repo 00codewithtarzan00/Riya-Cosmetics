@@ -593,14 +593,14 @@ export default function AdminPortal({
                 <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <h3 className="text-xs sm:text-sm font-extrabold uppercase text-[var(--theme-text-primary)] tracking-widest mb-2 pb-1 border-b border-[var(--theme-border)]">
+              <h3 className="text-xs sm:text-sm font-extrabold uppercase text-[var(--theme-text-primary)] tracking-widest mb-1.5 pb-1 border-b border-[var(--theme-border)]">
                 {editingProduct ? 'Edit Formula Details' : 'Add New Cosmetic Formula'}
               </h3>
 
-              <form onSubmit={handleSaveProduct} className="space-y-2">
+              <form onSubmit={handleSaveProduct} className="space-y-1.5">
                 {/* Product Name */}
                 <div>
-                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                  <label className="block text-[8.5px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                     Product Title *
                   </label>
                   <input
@@ -609,22 +609,22 @@ export default function AdminPortal({
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. Velvet Liquid Eyeshadow"
-                    className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                    className="w-full px-2 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                    <label className="block text-[8.5px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                       Category
                     </label>
                     <select
                       id="form-product-category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full px-2 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                      className="w-full px-1.5 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
                     >
                       <option value="Makeup">Makeup</option>
                       <option value="Skin Care">Skin Care</option>
@@ -638,7 +638,7 @@ export default function AdminPortal({
 
                   {/* MRP (INR) */}
                   <div>
-                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                    <label className="block text-[8.5px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                       MRP (₹) *
                     </label>
                     <input
@@ -647,7 +647,7 @@ export default function AdminPortal({
                       value={formMrp}
                       onChange={(e) => setFormMrp(e.target.value)}
                       placeholder="MRP"
-                      className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      className="w-full px-2 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -655,7 +655,7 @@ export default function AdminPortal({
 
                   {/* SP (INR) */}
                   <div>
-                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                    <label className="block text-[8.5px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                       SP (₹) *
                     </label>
                     <input
@@ -664,7 +664,7 @@ export default function AdminPortal({
                       value={formSp}
                       onChange={(e) => setFormSp(e.target.value)}
                       placeholder="SP"
-                      className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      className="w-full px-2 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -672,9 +672,9 @@ export default function AdminPortal({
                 </div>
 
                 {/* Stock Status & Quantity Management */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="border border-[var(--theme-border)]/50 p-2 bg-stone-50/50 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="border border-[var(--theme-border)]/50 p-1.5 bg-stone-50/50 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
                       <input
                         id="form-product-in-stock"
                         type="checkbox"
@@ -684,20 +684,20 @@ export default function AdminPortal({
                       />
                       <label 
                         htmlFor="form-product-in-stock" 
-                        className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
+                        className="text-[9.5px] font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
                       >
                         In Stock
                       </label>
                     </div>
-                    <span className={`text-[8.5px] font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded-xs ${
+                    <span className={`text-[8px] font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded-xs ${
                       formInStock ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                     }`}>
-                      {formInStock ? 'In Stock' : 'Out Of Stock'}
+                      {formInStock ? 'In Stock' : 'Out'}
                     </span>
                   </div>
 
-                  <div className="border border-[var(--theme-border)]/50 p-2 bg-stone-50/50 flex items-center">
-                    <div className="flex items-center gap-2">
+                  <div className="border border-[var(--theme-border)]/50 p-1.5 bg-stone-50/50 flex items-center">
+                    <div className="flex items-center gap-1.5">
                       <input
                         id="form-product-has-custom-qty"
                         type="checkbox"
@@ -707,7 +707,7 @@ export default function AdminPortal({
                       />
                       <label 
                         htmlFor="form-product-has-custom-qty" 
-                        className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
+                        className="text-[9.5px] font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
                       >
                         Show Quantity
                       </label>
@@ -716,9 +716,9 @@ export default function AdminPortal({
                 </div>
 
                 {formHasCustomQty && (
-                  <div className="border border-[var(--theme-border)]/50 p-2 bg-stone-50/50 grid grid-cols-2 gap-2.5 transition-all duration-300">
+                  <div className="border border-[var(--theme-border)]/50 p-1.5 bg-stone-50/50 grid grid-cols-2 gap-2 transition-all duration-300">
                     <div>
-                      <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                      <label className="block text-[8px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                         Quantity Value *
                       </label>
                       <input
@@ -727,7 +727,7 @@ export default function AdminPortal({
                         value={formQtyVal}
                         onChange={(e) => setFormQtyVal(e.target.value)}
                         placeholder="e.g. 5, 100, 2"
-                        className="w-full px-2.5 py-1.5 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                        className="w-full px-2 py-1 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                         required={formHasCustomQty}
                         min="0.01"
                         step="any"
@@ -735,14 +735,14 @@ export default function AdminPortal({
                     </div>
 
                     <div>
-                      <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                      <label className="block text-[8px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                         Unit Selector
                       </label>
                       <select
                         id="form-product-qty-unit"
                         value={formQtyUnit}
                         onChange={(e) => setFormQtyUnit(e.target.value)}
-                        className="w-full px-2 py-1.5 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                        className="w-full px-1.5 py-1 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
                       >
                         <option value="dozen">Dozen</option>
                         <option value="piece">Piece</option>
@@ -759,7 +759,7 @@ export default function AdminPortal({
 
                 {/* Narrative description */}
                 <div>
-                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                  <label className="block text-[8.5px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                     Details / Formula Description *
                   </label>
                   <textarea
@@ -768,20 +768,16 @@ export default function AdminPortal({
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Briefly describe formula highlights, finish type, and wear time..."
                     rows={2}
-                    className="w-full px-2.5 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-y min-h-[50px]"
+                    className="w-full px-2 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-y min-h-[44px]"
                     required
                   />
                 </div>
 
-                {/* Product Image Section: File upload up to 1MB OR image URL input */}
-                <div className="space-y-1">
-                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
-                    Product Image Selection
-                  </label>
-                  
-                  <div className="flex flex-row items-center gap-2.5">
-                    {/* Image Preview Box (Equal size) */}
-                    <div className="relative w-18 h-18 sm:w-20 sm:h-20 bg-stone-50 border border-[var(--theme-border)]/70 rounded-[2px] flex flex-col items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-xs">
+                {/* Product Image Section: Combined ultra compact container */}
+                <div className="border border-[var(--theme-border)]/50 p-1.5 bg-stone-50/50 space-y-1">
+                  <div className="flex flex-row items-center gap-2">
+                    {/* Image Preview Box */}
+                    <div className="relative w-12 h-12 bg-white border border-[var(--theme-border)]/70 rounded-[1px] flex flex-col items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-xs">
                       {formImage ? (
                         <>
                           <img
@@ -796,7 +792,7 @@ export default function AdminPortal({
                               e.stopPropagation();
                               setFormImage('');
                             }}
-                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px] font-bold uppercase tracking-wider cursor-pointer"
+                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[7px] font-bold uppercase tracking-wider cursor-pointer"
                           >
                             Remove
                           </button>
@@ -808,19 +804,19 @@ export default function AdminPortal({
                               <img
                                 src={categoryImagePresets[formCategory]}
                                 alt="Category preset fallback"
-                                className="w-8 h-8 object-contain opacity-50"
+                                className="w-6 h-6 object-contain opacity-40"
                                 referrerPolicy="no-referrer"
                               />
-                              <span className="text-[7px] uppercase tracking-wider text-stone-400 font-semibold mt-0.5">Preset</span>
+                              <span className="text-[6px] uppercase tracking-wider text-stone-400 font-semibold mt-0.5">Preset</span>
                             </div>
                           ) : (
-                            <span className="text-[8px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
+                            <span className="text-[7.5px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
                           )}
                         </div>
                       )}
                     </div>
 
-                    {/* Drag and Drop / Match Size Upload Box */}
+                    {/* Drag and Drop Box */}
                     <div
                       onDragOver={(e) => {
                         e.preventDefault();
@@ -835,10 +831,10 @@ export default function AdminPortal({
                         }
                       }}
                       onClick={() => document.getElementById('image-file-input')?.click()}
-                      className={`w-18 h-18 sm:w-20 sm:h-20 border-2 border-dashed rounded-[2px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-1 shrink-0 ${
+                      className={`w-12 h-12 border-2 border-dashed rounded-[1px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-0.5 shrink-0 ${
                         isDragging 
                           ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-glow)]' 
-                          : 'border-[var(--theme-border)] bg-stone-50/40 hover:bg-stone-50/70 hover:border-stone-400'
+                          : 'border-[var(--theme-border)] bg-white hover:bg-stone-50 hover:border-stone-400'
                       }`}
                     >
                       <input
@@ -852,53 +848,46 @@ export default function AdminPortal({
                         }}
                         className="hidden"
                       />
-                      <Upload className="w-4 h-4 text-stone-400 mb-0.5 animate-bounce" />
-                      <span className="text-[9px] font-bold text-[var(--theme-text-primary)] uppercase tracking-wider">Upload</span>
-                      <span className="text-[7px] text-[var(--theme-text-muted)] tracking-wider">Click/Drag</span>
-                      <span className="text-[6.5px] text-[var(--theme-text-muted)]/70 tracking-tight leading-none">Optimized</span>
+                      <Upload className="w-3.5 h-3.5 text-stone-400 mb-0.5 animate-bounce" />
+                      <span className="text-[7.5px] font-bold text-[var(--theme-text-primary)] uppercase tracking-tight">Upload</span>
+                      <span className="text-[6px] text-stone-400 leading-none">Click/Drag</span>
                     </div>
-                  </div>
 
-                  {/* Or Option */}
-                  <div className="flex items-center my-1 select-none">
-                    <div className="flex-1 border-t border-[var(--theme-border)]/50"></div>
-                    <span className="px-2 text-[8px] uppercase tracking-widest font-bold text-stone-400 bg-white">OR Use Web URL</span>
-                    <div className="flex-1 border-t border-[var(--theme-border)]/50"></div>
-                  </div>
-
-                  {/* Image URL Input Box */}
-                  <div className="flex gap-2 items-center">
-                    <div className="flex-1 min-w-0">
+                    {/* Direct Image URL input - unified horizontally */}
+                    <div className="flex-1 min-w-0 self-stretch flex flex-col justify-between py-0.5">
+                      <label className="block text-[8px] tracking-widest uppercase font-extrabold text-[var(--theme-text-muted)]">
+                        Or Paste Direct Image Web URL
+                      </label>
                       <input
                         id="form-product-image"
                         type="url"
                         value={formImage.startsWith('data:') ? '' : formImage}
                         onChange={(e) => setFormImage(e.target.value)}
-                        placeholder="Or hand-paste direct/Unsplash web URL..."
-                        className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                        placeholder="https://images.unsplash.com/etc..."
+                        className="w-full px-2 py-1 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       />
                     </div>
                   </div>
                 </div>
 
                 {formError && (
-                  <p className="text-xs text-red-800 font-medium bg-red-50 py-1.5 px-2.5 border-l-2 border-red-500 my-1">
+                  <p className="text-xs text-red-800 font-medium bg-red-50 py-1 px-2 border-l-2 border-red-500 my-0.5">
                     {formError}
                   </p>
                 )}
 
-                <div className="flex gap-2 pt-2 border-t border-[var(--theme-border)]">
+                <div className="flex gap-2 pt-1.5 border-t border-[var(--theme-border)]">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="w-1/2 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                    className="w-1/2 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     id="form-product-save"
-                    className="w-1/2 py-2 bg-[var(--theme-accent)] text-white font-semibold text-xs tracking-wider uppercase hover:bg-[var(--theme-accent-hover)] transition-colors cursor-pointer"
+                    className="w-1/2 py-1.5 bg-[var(--theme-accent)] text-white font-semibold text-xs tracking-wider uppercase hover:bg-[var(--theme-accent-hover)] transition-colors cursor-pointer"
                   >
                     {editingProduct ? 'Save Changes' : 'Create Item'}
                   </button>
