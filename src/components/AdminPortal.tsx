@@ -42,17 +42,12 @@ export default function AdminPortal({
   const [formHasCustomQty, setFormHasCustomQty] = useState(false);
   const [formQtyVal, setFormQtyVal] = useState('');
   const [formQtyUnit, setFormQtyUnit] = useState('ml');
+  const [formInStock, setFormInStock] = useState(true);
   const [formError, setFormError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFileChange = (file: File) => {
     if (!file) return;
-
-    // Check size limit: 1MB = 1024 * 1024 bytes (1,048,576 bytes)
-    if (file.size > 1024 * 1024) {
-      setFormError('Image file is too large. Image file size must be less than 1MB.');
-      return;
-    }
 
     // Check type
     if (!file.type.startsWith('image/')) {
@@ -65,7 +60,39 @@ export default function AdminPortal({
     reader.onload = (e) => {
       const result = e.target?.result;
       if (typeof result === 'string') {
-        setFormImage(result);
+        const img = new Image();
+        img.onload = () => {
+          const maxDimension = 600; // Perfect sizing for cosmetics previews
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Compress to highly optimized JPEG so any size upload works seamlessly
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            setFormImage(compressedDataUrl);
+          } else {
+            setFormImage(result);
+          }
+        };
+        img.onerror = () => {
+          setFormError('Failed to process image file.');
+        };
+        img.src = result;
       }
     };
     reader.onerror = () => {
@@ -142,6 +169,7 @@ export default function AdminPortal({
       setFormHasCustomQty(product.hasCustomQty || false);
       setFormQtyVal(product.qtyVal !== undefined ? product.qtyVal.toString() : '');
       setFormQtyUnit(product.qtyUnit || 'ml');
+      setFormInStock(product.inStock !== false);
     } else {
       // Create Mode
       setEditingProduct(null);
@@ -154,6 +182,7 @@ export default function AdminPortal({
       setFormHasCustomQty(false);
       setFormQtyVal('');
       setFormQtyUnit('ml');
+      setFormInStock(true);
     }
     setIsModalOpen(true);
   };
@@ -202,7 +231,8 @@ export default function AdminPortal({
         image: imageToSave,
         hasCustomQty: formHasCustomQty,
         qtyVal: formHasCustomQty && formQtyVal.trim() !== '' ? parseFloat(formQtyVal) : undefined,
-        qtyUnit: formHasCustomQty ? formQtyUnit : ''
+        qtyUnit: formHasCustomQty ? formQtyUnit : '',
+        inStock: formInStock
       });
     } else {
       // Create logic
@@ -216,7 +246,8 @@ export default function AdminPortal({
         image: imageToSave,
         hasCustomQty: formHasCustomQty,
         qtyVal: formHasCustomQty && formQtyVal.trim() !== '' ? parseFloat(formQtyVal) : undefined,
-        qtyUnit: formHasCustomQty ? formQtyUnit : ''
+        qtyUnit: formHasCustomQty ? formQtyUnit : '',
+        inStock: formInStock
       });
     }
 
@@ -546,30 +577,30 @@ export default function AdminPortal({
         {isModalOpen && (
           <div 
             id="admin-form-modal"
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md"
           >
             <div 
-              className="bg-white border border-[var(--theme-border)] w-full max-w-2xl rounded-none p-4 sm:p-6 relative shadow-2xl overflow-y-auto max-h-[95vh] flex flex-col"
+              className="bg-white border border-[var(--theme-border)] w-full max-w-xl rounded-none p-3.5 sm:p-5 relative shadow-2xl overflow-y-auto max-h-[98vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Icon */}
               <button
                 id="close-admin-form-modal"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 p-1.5 cursor-pointer rounded-full hover:bg-stone-100 transition-all duration-200"
+                className="absolute top-3.5 right-3.5 text-stone-400 hover:text-stone-900 p-1 cursor-pointer rounded-full hover:bg-stone-100 transition-all duration-200"
                 aria-label="Close"
               >
                 <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <h3 className="text-sm sm:text-base font-bold uppercase text-[var(--theme-text-primary)] tracking-widest mb-3 pb-1.5 border-b border-[var(--theme-border)]">
+              <h3 className="text-xs sm:text-sm font-extrabold uppercase text-[var(--theme-text-primary)] tracking-widest mb-2 pb-1.5 border-b border-[var(--theme-border)]">
                 {editingProduct ? 'Edit Formula Details' : 'Add New Cosmetic Formula'}
               </h3>
 
-              <form onSubmit={handleSaveProduct} className="space-y-3">
+              <form onSubmit={handleSaveProduct} className="space-y-2.5">
                 {/* Product Name */}
                 <div>
-                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                     Product Title *
                   </label>
                   <input
@@ -578,22 +609,22 @@ export default function AdminPortal({
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. Velvet Liquid Eyeshadow"
-                    className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                    className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                       Category
                     </label>
                     <select
                       id="form-product-category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full px-2 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                      className="w-full px-2 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
                     >
                       <option value="Makeup">Makeup</option>
                       <option value="Skin Care">Skin Care</option>
@@ -607,7 +638,7 @@ export default function AdminPortal({
 
                   {/* MRP (INR) */}
                   <div>
-                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                       MRP (₹) *
                     </label>
                     <input
@@ -616,7 +647,7 @@ export default function AdminPortal({
                       value={formMrp}
                       onChange={(e) => setFormMrp(e.target.value)}
                       placeholder="MRP"
-                      className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
@@ -624,7 +655,7 @@ export default function AdminPortal({
 
                   {/* SP (INR) */}
                   <div>
-                    <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                    <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                       SP (₹) *
                     </label>
                     <input
@@ -633,77 +664,102 @@ export default function AdminPortal({
                       value={formSp}
                       onChange={(e) => setFormSp(e.target.value)}
                       placeholder="SP"
-                      className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                      className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       required
                       min="1"
                     />
                   </div>
                 </div>
 
-                {/* Custom Quantity Section */}
-                <div className="border border-[var(--theme-border)]/50 p-3 bg-stone-50/50 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="form-product-has-custom-qty"
-                      type="checkbox"
-                      checked={formHasCustomQty}
-                      onChange={(e) => setFormHasCustomQty(e.target.checked)}
-                      className="w-4 h-4 text-[var(--theme-accent)] border-[var(--theme-border)] rounded-sm focus:ring-[var(--theme-accent)] cursor-pointer"
-                    />
-                    <label 
-                      htmlFor="form-product-has-custom-qty" 
-                      className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
-                    >
-                      Show Quantity
-                    </label>
+                {/* Stock Status & Quantity Management */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="border border-[var(--theme-border)]/50 p-2 bg-stone-50/50 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="form-product-in-stock"
+                        type="checkbox"
+                        checked={formInStock}
+                        onChange={(e) => setFormInStock(e.target.checked)}
+                        className="w-3.5 h-3.5 text-[var(--theme-accent)] border-[var(--theme-border)] rounded-sm focus:ring-[var(--theme-accent)] cursor-pointer"
+                      />
+                      <label 
+                        htmlFor="form-product-in-stock" 
+                        className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
+                      >
+                        In Stock
+                      </label>
+                    </div>
+                    <span className={`text-[8.5px] font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded-xs ${
+                      formInStock ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                    }`}>
+                      {formInStock ? 'In Stock' : 'Out Of Stock'}
+                    </span>
                   </div>
 
-                  {formHasCustomQty && (
-                    <div className="grid grid-cols-2 gap-3 transition-all duration-300">
-                      <div>
-                        <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
-                          Quantity Value *
-                        </label>
-                        <input
-                          id="form-product-qty-value"
-                          type="number"
-                          value={formQtyVal}
-                          onChange={(e) => setFormQtyVal(e.target.value)}
-                          placeholder="e.g. 5, 100, 2"
-                          className="w-full px-3 py-2 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
-                          required={formHasCustomQty}
-                          min="0.01"
-                          step="any"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
-                          Unit Selector
-                        </label>
-                        <select
-                          id="form-product-qty-unit"
-                          value={formQtyUnit}
-                          onChange={(e) => setFormQtyUnit(e.target.value)}
-                          className="w-full px-2 py-2 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
-                        >
-                          <option value="dozen">Dozen</option>
-                          <option value="piece">Piece</option>
-                          <option value="ml">ml</option>
-                          <option value="l">l</option>
-                          <option value="kg">kg</option>
-                          <option value="g">g</option>
-                          <option value="packet">Packet</option>
-                          <option value="box">Box</option>
-                        </select>
-                      </div>
+                  <div className="border border-[var(--theme-border)]/50 p-2 bg-stone-50/50 flex items-center">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="form-product-has-custom-qty"
+                        type="checkbox"
+                        checked={formHasCustomQty}
+                        onChange={(e) => setFormHasCustomQty(e.target.checked)}
+                        className="w-3.5 h-3.5 text-[var(--theme-accent)] border-[var(--theme-border)] rounded-sm focus:ring-[var(--theme-accent)] cursor-pointer"
+                      />
+                      <label 
+                        htmlFor="form-product-has-custom-qty" 
+                        className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
+                      >
+                        Show Quantity
+                      </label>
                     </div>
-                  )}
+                  </div>
                 </div>
+
+                {formHasCustomQty && (
+                  <div className="border border-[var(--theme-border)]/50 p-2 bg-stone-50/50 grid grid-cols-2 gap-2.5 transition-all duration-300">
+                    <div>
+                      <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                        Quantity Value *
+                      </label>
+                      <input
+                        id="form-product-qty-value"
+                        type="number"
+                        value={formQtyVal}
+                        onChange={(e) => setFormQtyVal(e.target.value)}
+                        placeholder="e.g. 5, 100, 2"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                        required={formHasCustomQty}
+                        min="0.01"
+                        step="any"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
+                        Unit Selector
+                      </label>
+                      <select
+                        id="form-product-qty-unit"
+                        value={formQtyUnit}
+                        onChange={(e) => setFormQtyUnit(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-white border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                      >
+                        <option value="dozen">Dozen</option>
+                        <option value="piece">Piece</option>
+                        <option value="ml">ml</option>
+                        <option value="l">l</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="packet">Packet</option>
+                        <option value="box">Box</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 {/* Narrative description */}
                 <div>
-                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                     Details / Formula Description *
                   </label>
                   <textarea
@@ -711,21 +767,21 @@ export default function AdminPortal({
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Briefly describe formula highlights, finish type, and wear time..."
-                    rows={2}
-                    className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-none"
+                    rows={4}
+                    className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-y min-h-[90px]"
                     required
                   />
                 </div>
 
                 {/* Product Image Section: File upload up to 1MB OR image URL input */}
-                <div className="space-y-3">
-                  <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                <div className="space-y-1.5">
+                  <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                     Product Image Selection
                   </label>
                   
-                  <div className="flex flex-row items-center gap-4">
+                  <div className="flex flex-row items-center gap-3">
                     {/* Image Preview Box (Equal size) */}
-                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 bg-stone-50 border border-[var(--theme-border)]/70 rounded-[2px] flex flex-col items-center justify-center p-1 overflow-hidden shrink-0 shadow-xs">
+                    <div className="relative w-24 h-24 sm:w-26 sm:h-26 bg-stone-50 border border-[var(--theme-border)]/70 rounded-[2px] flex flex-col items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-xs">
                       {formImage ? (
                         <>
                           <img
@@ -740,25 +796,25 @@ export default function AdminPortal({
                               e.stopPropagation();
                               setFormImage('');
                             }}
-                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[9px] font-bold uppercase tracking-wider cursor-pointer"
                           >
                             Remove
                           </button>
                         </>
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-1">
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-0.5">
                           {categoryImagePresets[formCategory] ? (
                             <div className="flex flex-col items-center justify-center">
                               <img
                                 src={categoryImagePresets[formCategory]}
                                 alt="Category preset fallback"
-                                className="w-16 h-16 object-contain opacity-50"
+                                className="w-12 h-12 object-contain opacity-50"
                                 referrerPolicy="no-referrer"
                               />
-                              <span className="text-[8px] uppercase tracking-wider text-stone-400 font-semibold mt-1">Preset Fallback</span>
+                              <span className="text-[7.5px] uppercase tracking-wider text-stone-400 font-semibold mt-0.5">Preset Fallback</span>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
+                            <span className="text-[9px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
                           )}
                         </div>
                       )}
@@ -779,7 +835,7 @@ export default function AdminPortal({
                         }
                       }}
                       onClick={() => document.getElementById('image-file-input')?.click()}
-                      className={`w-28 h-28 sm:w-32 sm:h-32 border-2 border-dashed rounded-[2px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-2 shrink-0 ${
+                      className={`w-24 h-24 sm:w-26 sm:h-26 border-2 border-dashed rounded-[2px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-1.5 shrink-0 ${
                         isDragging 
                           ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-glow)]' 
                           : 'border-[var(--theme-border)] bg-stone-50/40 hover:bg-stone-50/70 hover:border-stone-400'
@@ -796,22 +852,22 @@ export default function AdminPortal({
                         }}
                         className="hidden"
                       />
-                      <Upload className="w-6 h-6 text-stone-400 mb-1 animate-bounce" />
-                      <span className="text-[11px] font-bold text-[var(--theme-text-primary)] uppercase tracking-wider">Upload</span>
-                      <span className="text-[8px] text-[var(--theme-text-muted)] tracking-wider mt-0.5">Click or Drag</span>
-                      <span className="text-[7.5px] text-[var(--theme-text-muted)]/70 tracking-tight leading-none mt-0.5">Max 1MB</span>
+                      <Upload className="w-5 h-5 text-stone-400 mb-0.5 animate-bounce" />
+                      <span className="text-[10px] font-bold text-[var(--theme-text-primary)] uppercase tracking-wider">Upload</span>
+                      <span className="text-[7.5px] text-[var(--theme-text-muted)] tracking-wider">Click or Drag</span>
+                      <span className="text-[7px] text-[var(--theme-text-muted)]/70 tracking-tight leading-none mt-0.5">Auto-Optimized</span>
                     </div>
                   </div>
 
                   {/* Or Option */}
-                  <div className="flex items-center my-2 select-none">
+                  <div className="flex items-center my-1 select-none">
                     <div className="flex-1 border-t border-[var(--theme-border)]/50"></div>
-                    <span className="px-3 text-[9px] uppercase tracking-widest font-bold text-stone-400 bg-white">OR Use Web URL</span>
+                    <span className="px-2 text-[8px] uppercase tracking-widest font-bold text-stone-400 bg-white">OR Use Web URL</span>
                     <div className="flex-1 border-t border-[var(--theme-border)]/50"></div>
                   </div>
 
                   {/* Image URL Input Box */}
-                  <div className="flex gap-3 items-center">
+                  <div className="flex gap-2 items-center">
                     <div className="flex-1 min-w-0">
                       <input
                         id="form-product-image"
@@ -819,7 +875,7 @@ export default function AdminPortal({
                         value={formImage.startsWith('data:') ? '' : formImage}
                         onChange={(e) => setFormImage(e.target.value)}
                         placeholder="Or hand-paste direct/Unsplash web URL..."
-                        className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                        className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       />
                     </div>
                   </div>
@@ -831,11 +887,11 @@ export default function AdminPortal({
                   </p>
                 )}
 
-                <div className="flex gap-2.5 pt-3 border-t border-[var(--theme-border)]">
+                <div className="flex gap-2 pt-2 border-t border-[var(--theme-border)]">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="w-1/2 py-2.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                    className="w-1/2 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] hover:border-stone-400 text-[var(--theme-text-primary)] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -848,7 +904,6 @@ export default function AdminPortal({
                   </button>
                 </div>
               </form>
-
             </div>
           </div>
         )}

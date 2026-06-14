@@ -336,6 +336,16 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
                     {selectedProduct.name}
                   </h3>
                   
+                  <div className="flex gap-2 items-center mb-2 flex-wrap">
+                    <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm border ${
+                      selectedProduct.inStock !== false 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-red-50 text-red-700 border-red-200'
+                    }`}>
+                      {selectedProduct.inStock !== false ? 'In Stock' : 'Out of Stock'}
+                    </span>
+                  </div>
+                  
                   {/* Absolute Price Listing */}
                   <div className="mb-3.5 pb-2.5 border-b border-[var(--theme-border)]">
                     <div className="flex items-center gap-2 flex-wrap">

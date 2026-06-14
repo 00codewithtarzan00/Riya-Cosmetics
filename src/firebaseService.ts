@@ -76,6 +76,7 @@ export function subscribeToProducts(
             hasCustomQty: data.hasCustomQty || false,
             qtyVal: typeof data.qtyVal === 'number' ? data.qtyVal : undefined,
             qtyUnit: data.qtyUnit || '',
+            inStock: data.inStock !== false,
           });
         });
         onUpdate(prodList);
@@ -107,6 +108,7 @@ export async function dbAddProduct(newProduct: Omit<Product, 'id'>): Promise<str
       hasCustomQty: newProduct.hasCustomQty || false,
       qtyVal: newProduct.qtyVal !== undefined ? Number(newProduct.qtyVal) : null,
       qtyUnit: newProduct.qtyUnit || '',
+      inStock: newProduct.inStock !== false,
       createdAt: new Date().toISOString()
     });
     return docRef.id;
@@ -132,6 +134,7 @@ export async function dbUpdateProduct(updatedProduct: Product): Promise<void> {
       hasCustomQty: updatedProduct.hasCustomQty || false,
       qtyVal: updatedProduct.qtyVal !== undefined ? Number(updatedProduct.qtyVal) : null,
       qtyUnit: updatedProduct.qtyUnit || '',
+      inStock: updatedProduct.inStock !== false,
       updatedAt: new Date().toISOString()
     });
   } catch (error) {

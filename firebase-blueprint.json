@@ -13,6 +13,10 @@
         "sp": { "type": "number", "description": "Sale Price" },
         "description": { "type": "string", "description": "Elegant product description" },
         "image": { "type": "string", "description": "Image URL of the cosmetic product" },
+        "hasCustomQty": { "type": "boolean", "description": "Whether the product has a custom quantity displayed" },
+        "qtyVal": { "type": "number", "description": "Value of custom quantity" },
+        "qtyUnit": { "type": "string", "description": "Unit of custom quantity" },
+        "inStock": { "type": "boolean", "description": "Whether the product is currently in stock or out of stock" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was added" },
         "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was updated" }
       },

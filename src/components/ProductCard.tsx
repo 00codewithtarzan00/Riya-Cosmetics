@@ -13,6 +13,7 @@ export interface Product {
   hasCustomQty?: boolean;
   qtyVal?: number;
   qtyUnit?: string;
+  inStock?: boolean;
 }
 
 interface ProductCardProps {
@@ -82,8 +83,12 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
         )}
         
         {/* Floating status badge anchored in upper right-corner */}
-        <div className="absolute top-2 right-2 bg-white/95 text-[9px] sm:text-[10px] text-[var(--theme-text-primary)] border border-[var(--theme-border)] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm z-10 shadow-xs">
-          In Stock
+        <div className={`absolute top-2 right-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm z-10 shadow-xs border ${
+          product.inStock !== false 
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+            : 'bg-red-50 text-red-700 border-red-200'
+        }`}>
+          {product.inStock !== false ? 'In Stock' : 'Out of Stock'}
         </div>
 
         {/* Dynamic Discount Sticker Stamp */}
