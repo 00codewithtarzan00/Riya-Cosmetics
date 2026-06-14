@@ -73,6 +73,9 @@ export function subscribeToProducts(
             sp: typeof data.sp === 'number' ? data.sp : Number(data.sp || 0),
             description: data.description || '',
             image: data.image || '',
+            hasCustomQty: data.hasCustomQty || false,
+            qtyVal: typeof data.qtyVal === 'number' ? data.qtyVal : undefined,
+            qtyUnit: data.qtyUnit || '',
           });
         });
         onUpdate(prodList);
@@ -101,6 +104,9 @@ export async function dbAddProduct(newProduct: Omit<Product, 'id'>): Promise<str
       sp: Number(newProduct.sp || newProduct.priceInINR),
       description: newProduct.description,
       image: newProduct.image,
+      hasCustomQty: newProduct.hasCustomQty || false,
+      qtyVal: newProduct.qtyVal !== undefined ? Number(newProduct.qtyVal) : null,
+      qtyUnit: newProduct.qtyUnit || '',
       createdAt: new Date().toISOString()
     });
     return docRef.id;
@@ -123,6 +129,9 @@ export async function dbUpdateProduct(updatedProduct: Product): Promise<void> {
       sp: Number(updatedProduct.sp || updatedProduct.priceInINR),
       description: updatedProduct.description,
       image: updatedProduct.image,
+      hasCustomQty: updatedProduct.hasCustomQty || false,
+      qtyVal: updatedProduct.qtyVal !== undefined ? Number(updatedProduct.qtyVal) : null,
+      qtyUnit: updatedProduct.qtyUnit || '',
       updatedAt: new Date().toISOString()
     });
   } catch (error) {

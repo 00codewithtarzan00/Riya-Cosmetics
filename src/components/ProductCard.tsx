@@ -10,11 +10,37 @@ export interface Product {
   sp?: number;
   description: string;
   image: string;
+  hasCustomQty?: boolean;
+  qtyVal?: number;
+  qtyUnit?: string;
 }
 
 interface ProductCardProps {
   product: Product;
   onViewDetails: (product: Product) => void;
+}
+
+export function formatCustomQuantity(qtyVal: number | undefined, qtyUnit: string | undefined): string {
+  if (qtyVal === undefined || qtyVal === null || !qtyUnit) return '';
+  const unitClean = qtyUnit.trim();
+  const unitLower = unitClean.toLowerCase();
+  
+  let formattedUnit = unitClean;
+  if (unitLower.length === 1) {
+    if (unitLower === 'g') {
+      formattedUnit = qtyVal > 1 ? 'Grams' : 'Gram';
+    } else if (unitLower === 'l') {
+      formattedUnit = qtyVal > 1 ? 'Litres' : 'Litre';
+    } else {
+      formattedUnit = unitClean.toUpperCase();
+    }
+  } else if (unitLower.length === 2) {
+    formattedUnit = unitLower;
+  } else {
+    formattedUnit = unitClean.charAt(0).toUpperCase() + unitClean.slice(1).toLowerCase();
+  }
+  
+  return `${qtyVal} ${formattedUnit}`;
 }
 
 export default function ProductCard({product, onViewDetails}: ProductCardProps) {
@@ -24,19 +50,26 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
   
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  const getQtyAndSpecs = () => {
+    if (product.hasCustomQty && product.qtyVal !== undefined) {
+      return formatCustomQuantity(product.qtyVal, product.qtyUnit);
+    }
+    return '';
+  };
+
   return (
     <div 
       id={`product-card-${product.id}`}
       onClick={() => onViewDetails(product)}
-      className="group relative bg-white border border-[var(--theme-border)] rounded-none overflow-hidden transition-all duration-500 hover:border-[var(--theme-accent)] flex flex-col justify-between shadow-xs cursor-pointer"
+      className="editorial-card fade-in group relative bg-white border border-[var(--theme-border)]/70 rounded-[2px] overflow-hidden transition-all duration-300 hover:border-[var(--theme-accent)] hover:shadow-sm flex flex-col justify-between cursor-pointer"
     >
-      {/* Product Image Section */}
-      <div className="relative overflow-hidden aspect-[4/3] bg-stone-50 flex items-center justify-center p-2 border-b border-[var(--theme-border)]/50">
+      {/* Upper Media Section */}
+      <div className="relative overflow-hidden aspect-square bg-stone-50 flex items-center justify-center border-b border-[var(--theme-border)]/40">
         <img 
           src={product.image} 
           alt={product.name}
           onLoad={() => setImageLoaded(true)}
-          className={`w-full h-full object-contain transition-all duration-1000 ease-out group-hover:scale-105 ${
+          className={`w-full h-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-105 ${
             imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
           loading="lazy"
@@ -47,12 +80,19 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
             <span className="text-[9px] uppercase tracking-widest text-stone-400 font-mono">Formula loading...</span>
           </div>
         )}
+        
+        {/* Floating status badge anchored in upper right-corner */}
+        <div className="absolute top-2 right-2 bg-white/95 text-[9px] sm:text-[10px] text-[var(--theme-text-primary)] border border-[var(--theme-border)] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm z-10 shadow-xs">
+          In Stock
+        </div>
+
         {/* Dynamic Discount Sticker Stamp */}
         {discountPercent > 0 && (
-          <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-md z-10 animate-pulse">
+          <div className="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-md z-10">
             {discountPercent}% OFF
           </div>
         )}
+
         {/* Glamour Overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <button
@@ -69,40 +109,49 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-2 sm:p-2.5 flex flex-col flex-grow justify-between bg-white text-left font-sans">
-        <div className="space-y-1.5">
-          {/* Category */}
-          <div>
-            <span className="inline-block text-[8px] sm:text-[9px] capitalize tracking-wider text-[var(--theme-accent)] font-bold bg-[var(--theme-accent-glow)] px-2 py-0.5 rounded-xs">
+      {/* Lower Text & Price Section */}
+      <div className="p-3 md:p-4 flex flex-col flex-grow justify-between min-h-0 md:min-h-32 bg-white text-left font-sans">
+        <div className="space-y-1 mb-2">
+          {/* Category Line */}
+          <div className="truncate">
+            <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold text-[var(--theme-accent)]">
               {product.category}
             </span>
           </div>
-          {/* Title */}
-          <h3 className="text-xs sm:text-[13px] font-semibold text-[var(--theme-text-primary)] tracking-wide group-hover:text-[var(--theme-accent)] transition-colors duration-300 line-clamp-2 min-h-[2rem] leading-tight">
+          
+          {/* Product Title (Name) */}
+          <h3 className="text-base md:text-lg font-medium text-[var(--theme-text-primary)] tracking-tight leading-tight line-clamp-2 mb-1 group-hover:text-[var(--theme-accent)] transition-colors duration-300">
             {product.name}
           </h3>
+
+          {/* Quantity Badge Line */}
+          {getQtyAndSpecs() && (
+            <div className="text-[11px] sm:text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap mb-2">
+              {getQtyAndSpecs()}
+            </div>
+          )}
         </div>
 
-        {/* Pricing & Primary Action */}
-        <div className="mt-1.5 pt-1.5 border-t border-[var(--theme-border)]/60 flex flex-wrap items-center justify-between gap-1">
-          <div className="flex flex-col items-start leading-none">
+        {/* Footer Panel (Prices) */}
+        <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-[var(--theme-border)]/40">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-lg md:text-xl font-bold text-[var(--theme-text-primary)] tracking-tight">
+              ₹{spVal.toLocaleString('en-IN')}
+            </span>
             {discountPercent > 0 && (
-              <span className="text-[8px] sm:text-[9px] text-[var(--theme-text-muted)] line-through decoration-red-500/40 mb-0.5">
+              <span className="text-xs text-[var(--theme-text-muted)] line-through decoration-red-500/30">
                 ₹{mrpVal.toLocaleString('en-IN')}
               </span>
             )}
-            <span className="text-xs sm:text-[13px] font-extrabold text-[var(--theme-text-primary)] tracking-wide">
-              ₹{spVal.toLocaleString('en-IN')}
-            </span>
           </div>
+          
           <button
             id={`view-details-btn-${product.id}`}
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(product);
             }}
-            className="text-[9px] sm:text-[10px] tracking-wider text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 cursor-pointer"
+            className="text-[10px] tracking-wider text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 cursor-pointer"
           >
             Details 
             <span className="transform translate-x-0 group-hover:translate-x-0.5 transition-transform duration-300">→</span>

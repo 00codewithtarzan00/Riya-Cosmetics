@@ -2,7 +2,8 @@ import {useState, useEffect, useMemo} from 'react';
 import {Product} from './ProductCard.tsx';
 import {
   Lock, Eye, EyeOff, LayoutDashboard, Plus, Pencil, Trash2, 
-  Settings, LogOut, Check, Info, Coins, BarChart3, Tag, Package
+  Settings, LogOut, Check, Info, Coins, BarChart3, Tag, Package,
+  Upload, Image as ImageIcon, X
 } from 'lucide-react';
 
 interface AdminPortalProps {
@@ -38,7 +39,40 @@ export default function AdminPortal({
   const [formSp, setFormSp] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formImage, setFormImage] = useState('');
+  const [formHasCustomQty, setFormHasCustomQty] = useState(false);
+  const [formQtyVal, setFormQtyVal] = useState('');
+  const [formQtyUnit, setFormQtyUnit] = useState('ml');
   const [formError, setFormError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileChange = (file: File) => {
+    if (!file) return;
+
+    // Check size limit: 1MB = 1024 * 1024 bytes (1,048,576 bytes)
+    if (file.size > 1024 * 1024) {
+      setFormError('Image file is too large. Image file size must be less than 1MB.');
+      return;
+    }
+
+    // Check type
+    if (!file.type.startsWith('image/')) {
+      setFormError('Format invalid. Please select an image file (PNG, JPG, WEBP, etc).');
+      return;
+    }
+
+    setFormError('');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (typeof result === 'string') {
+        setFormImage(result);
+      }
+    };
+    reader.onerror = () => {
+      setFormError('Failed to read image file.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Default images presets by category to make testing incredibly pleasant
   const categoryImagePresets: Record<string, string> = {
@@ -62,7 +96,7 @@ export default function AdminPortal({
   // Handle Authentication Password Check
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'adm_raj%7979') {
+    if (password === 'adm_r@j123') {
       sessionStorage.setItem('riya_admin_auth', 'authenticated');
       setIsAuthenticated(true);
       setAuthError('');
@@ -105,6 +139,9 @@ export default function AdminPortal({
       setFormSp((product.sp || product.priceInINR || '').toString());
       setFormDescription(product.description);
       setFormImage(product.image);
+      setFormHasCustomQty(product.hasCustomQty || false);
+      setFormQtyVal(product.qtyVal !== undefined ? product.qtyVal.toString() : '');
+      setFormQtyUnit(product.qtyUnit || 'ml');
     } else {
       // Create Mode
       setEditingProduct(null);
@@ -114,6 +151,9 @@ export default function AdminPortal({
       setFormSp('');
       setFormDescription('');
       setFormImage('');
+      setFormHasCustomQty(false);
+      setFormQtyVal('');
+      setFormQtyUnit('ml');
     }
     setIsModalOpen(true);
   };
@@ -159,7 +199,10 @@ export default function AdminPortal({
         mrp: mrpNum,
         sp: spNum,
         description: formDescription.trim(),
-        image: imageToSave
+        image: imageToSave,
+        hasCustomQty: formHasCustomQty,
+        qtyVal: formHasCustomQty && formQtyVal.trim() !== '' ? parseFloat(formQtyVal) : undefined,
+        qtyUnit: formHasCustomQty ? formQtyUnit : ''
       });
     } else {
       // Create logic
@@ -170,7 +213,10 @@ export default function AdminPortal({
         mrp: mrpNum,
         sp: spNum,
         description: formDescription.trim(),
-        image: imageToSave
+        image: imageToSave,
+        hasCustomQty: formHasCustomQty,
+        qtyVal: formHasCustomQty && formQtyVal.trim() !== '' ? parseFloat(formQtyVal) : undefined,
+        qtyUnit: formHasCustomQty ? formQtyUnit : ''
       });
     }
 
@@ -510,9 +556,10 @@ export default function AdminPortal({
               <button
                 id="close-admin-form-modal"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-stone-400 hover:text-[var(--theme-text-primary)] p-1 cursor-pointer font-bold text-[10px] tracking-widest uppercase transition-colors"
+                className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 p-1.5 cursor-pointer rounded-full hover:bg-stone-100 transition-all duration-200"
+                aria-label="Close"
               >
-                Cancel
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <h3 className="text-sm sm:text-base font-bold uppercase text-[var(--theme-text-primary)] tracking-widest mb-3 pb-1.5 border-b border-[var(--theme-border)]">
@@ -593,6 +640,67 @@ export default function AdminPortal({
                   </div>
                 </div>
 
+                {/* Custom Quantity Section */}
+                <div className="border border-[var(--theme-border)]/50 p-3 bg-stone-50/50 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="form-product-has-custom-qty"
+                      type="checkbox"
+                      checked={formHasCustomQty}
+                      onChange={(e) => setFormHasCustomQty(e.target.checked)}
+                      className="w-4 h-4 text-[var(--theme-accent)] border-[var(--theme-border)] rounded-sm focus:ring-[var(--theme-accent)] cursor-pointer"
+                    />
+                    <label 
+                      htmlFor="form-product-has-custom-qty" 
+                      className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-primary)] cursor-pointer select-none"
+                    >
+                      Show Quantity
+                    </label>
+                  </div>
+
+                  {formHasCustomQty && (
+                    <div className="grid grid-cols-2 gap-3 transition-all duration-300">
+                      <div>
+                        <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                          Quantity Value *
+                        </label>
+                        <input
+                          id="form-product-qty-value"
+                          type="number"
+                          value={formQtyVal}
+                          onChange={(e) => setFormQtyVal(e.target.value)}
+                          placeholder="e.g. 5, 100, 2"
+                          className="w-full px-3 py-2 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
+                          required={formHasCustomQty}
+                          min="0.01"
+                          step="any"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
+                          Unit Selector
+                        </label>
+                        <select
+                          id="form-product-qty-unit"
+                          value={formQtyUnit}
+                          onChange={(e) => setFormQtyUnit(e.target.value)}
+                          className="w-full px-2 py-2 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] cursor-pointer"
+                        >
+                          <option value="dozen">Dozen</option>
+                          <option value="piece">Piece</option>
+                          <option value="ml">ml</option>
+                          <option value="l">l</option>
+                          <option value="kg">kg</option>
+                          <option value="g">g</option>
+                          <option value="packet">Packet</option>
+                          <option value="box">Box</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Narrative description */}
                 <div>
                   <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
@@ -609,40 +717,108 @@ export default function AdminPortal({
                   />
                 </div>
 
-                {/* Unsplash custom url option */}
-                <div>
+                {/* Product Image Section: File upload up to 1MB OR image URL input */}
+                <div className="space-y-3">
                   <label className="block text-[10px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
-                    Unsplash Image URL <span className="text-stone-400 font-light lowercase">(optional)</span>
+                    Product Image Selection
                   </label>
-                  <div className="flex gap-3 items-center">
-                    <div className="w-10 h-10 bg-[var(--theme-bg)] border border-[var(--theme-border)] overflow-hidden shrink-0 flex items-center justify-center relative">
-                      {(() => {
-                        const previewUrl = formImage.trim() !== '' 
-                          ? formImage.trim() 
-                          : categoryImagePresets[formCategory];
-                        
-                        return previewUrl ? (
-                          <img 
-                            src={previewUrl} 
-                            alt="Formula Preview" 
-                            className="w-full h-full object-cover"
+                  
+                  <div className="flex flex-row items-center gap-4">
+                    {/* Image Preview Box (Equal size) */}
+                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 bg-stone-50 border border-[var(--theme-border)]/70 rounded-[2px] flex flex-col items-center justify-center p-1 overflow-hidden shrink-0 shadow-xs">
+                      {formImage ? (
+                        <>
+                          <img
+                            src={formImage}
+                            alt="Uploaded product preview"
+                            className="w-full h-full object-contain"
                             referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=200';
-                            }}
                           />
-                        ) : (
-                          <span className="text-[10px] text-[var(--theme-text-muted)] font-mono">No Img</span>
-                        );
-                      })()}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormImage('');
+                            }}
+                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-1">
+                          {categoryImagePresets[formCategory] ? (
+                            <div className="flex flex-col items-center justify-center">
+                              <img
+                                src={categoryImagePresets[formCategory]}
+                                alt="Category preset fallback"
+                                className="w-16 h-16 object-contain opacity-50"
+                                referrerPolicy="no-referrer"
+                              />
+                              <span className="text-[8px] uppercase tracking-wider text-stone-400 font-semibold mt-1">Preset Fallback</span>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
+                          )}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Drag and Drop / Match Size Upload Box */}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                          handleFileChange(e.dataTransfer.files[0]);
+                        }
+                      }}
+                      onClick={() => document.getElementById('image-file-input')?.click()}
+                      className={`w-28 h-28 sm:w-32 sm:h-32 border-2 border-dashed rounded-[2px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-2 shrink-0 ${
+                        isDragging 
+                          ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-glow)]' 
+                          : 'border-[var(--theme-border)] bg-stone-50/40 hover:bg-stone-50/70 hover:border-stone-400'
+                      }`}
+                    >
+                      <input
+                        id="image-file-input"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileChange(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <Upload className="w-6 h-6 text-stone-400 mb-1 animate-bounce" />
+                      <span className="text-[11px] font-bold text-[var(--theme-text-primary)] uppercase tracking-wider">Upload</span>
+                      <span className="text-[8px] text-[var(--theme-text-muted)] tracking-wider mt-0.5">Click or Drag</span>
+                      <span className="text-[7.5px] text-[var(--theme-text-muted)]/70 tracking-tight leading-none mt-0.5">Max 1MB</span>
+                    </div>
+                  </div>
+
+                  {/* Or Option */}
+                  <div className="flex items-center my-2 select-none">
+                    <div className="flex-1 border-t border-[var(--theme-border)]/50"></div>
+                    <span className="px-3 text-[9px] uppercase tracking-widest font-bold text-stone-400 bg-white">OR Use Web URL</span>
+                    <div className="flex-1 border-t border-[var(--theme-border)]/50"></div>
+                  </div>
+
+                  {/* Image URL Input Box */}
+                  <div className="flex gap-3 items-center">
                     <div className="flex-1 min-w-0">
                       <input
                         id="form-product-image"
                         type="url"
-                        value={formImage}
+                        value={formImage.startsWith('data:') ? '' : formImage}
                         onChange={(e) => setFormImage(e.target.value)}
-                        placeholder="https://images.unsplash.com/photo-..."
+                        placeholder="Or hand-paste direct/Unsplash web URL..."
                         className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)]"
                       />
                     </div>

@@ -1,28 +1,32 @@
 import {useState, useMemo, useEffect, useRef} from 'react';
-import ProductCard, {Product} from './ProductCard.tsx';
+import ProductCard, {Product, formatCustomQuantity} from './ProductCard.tsx';
 import {Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert} from 'lucide-react';
 
 function ProductCardSkeleton() {
   return (
-    <div className="bg-white border border-[var(--theme-border)] rounded-none overflow-hidden flex flex-col justify-between shadow-xs animate-pulse">
+    <div className="editorial-card bg-white border border-[var(--theme-border)]/70 rounded-[2px] overflow-hidden flex flex-col justify-between shadow-xs animate-pulse">
       {/* Product Image Section Skeleton */}
-      <div className="relative aspect-[4/3] bg-stone-100 flex items-center justify-center">
+      <div className="relative aspect-square bg-stone-100 flex items-center justify-center">
         <div className="text-center px-4">
           <span className="text-[9px] uppercase tracking-widest text-stone-300 font-mono">Curating...</span>
         </div>
       </div>
 
       {/* Content Section Skeleton */}
-      <div className="p-2 sm:p-3 flex flex-col flex-grow justify-between space-y-2">
-        <div className="space-y-1">
+      <div className="p-3 md:p-4 flex flex-col flex-grow justify-between min-h-0 md:min-h-32 bg-white">
+        <div className="space-y-2 mb-2">
+          {/* Category */}
+          <div className="h-2 bg-stone-200/60 w-1/4 rounded-[2px]" />
           {/* Title */}
-          <div className="h-3 bg-stone-200 w-3/4 rounded-none" />
+          <div className="h-4 bg-stone-200 w-3/4 rounded-[2px]" />
+          {/* Specs */}
+          <div className="h-2.5 bg-stone-100 w-1/2 rounded-[2px]" />
         </div>
 
         {/* Price & Action Button */}
-        <div className="mt-2 pt-2 border-t border-[var(--theme-border)] flex items-center justify-between">
-          <div className="h-4 bg-stone-200 w-12 rounded-none" />
-          <div className="h-3 bg-stone-200 w-10 rounded-none" />
+        <div className="mt-auto pt-2 border-t border-[var(--theme-border)]/40 flex items-center justify-between">
+          <div className="h-4 bg-stone-200 w-12 rounded-[2px]" />
+          <div className="h-3 bg-stone-200 w-10 rounded-[2px]" />
         </div>
       </div>
     </div>
@@ -197,8 +201,8 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
 
         {/* Product Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 animate-pulse">
-            {Array.from({ length: 6 }).map((_, index) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 animate-pulse">
+            {Array.from({ length: 8 }).map((_, index) => (
               <ProductCardSkeleton key={`initial-skeleton-${index}`} />
             ))}
           </div>
@@ -212,7 +216,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5 transition-opacity duration-300">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 transition-opacity duration-300">
               {visibleProducts.map((p) => (
                 <ProductCard 
                   key={p.id} 
@@ -223,7 +227,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
 
               {/* Keep the product boxes placeholder grid alive while loading more */}
               {isLoadingMore && (
-                Array.from({ length: 6 }).map((_, index) => (
+                Array.from({ length: 4 }).map((_, index) => (
                   <ProductCardSkeleton key={`lookbook-skeleton-${index}`} />
                 ))
               )}
@@ -365,7 +369,16 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
                   </div>
 
                   {/* Product Narrative */}
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-4">
+                    {selectedProduct.hasCustomQty && selectedProduct.qtyVal !== undefined && (
+                      <div>
+                        <h4 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Specifications / Quantity</h4>
+                        <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed">
+                          {formatCustomQuantity(selectedProduct.qtyVal, selectedProduct.qtyUnit)}
+                        </p>
+                      </div>
+                    )}
+
                     <div>
                       <h4 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Description</h4>
                       <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] font-medium leading-relaxed">
