@@ -115,8 +115,8 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
       </div>
 
       {/* Lower Text & Price Section */}
-      <div className="p-3 md:p-4 flex flex-col flex-grow justify-between min-h-0 md:min-h-32 bg-white text-left font-sans">
-        <div className="space-y-1 mb-2">
+      <div className="p-3 md:p-3.5 flex flex-col flex-grow justify-between min-h-0 md:min-h-[105px] bg-white text-left font-sans">
+        <div className="space-y-0.5 mb-1">
           {/* Category Line */}
           <div className="truncate">
             <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold text-[var(--theme-accent)]">
@@ -125,20 +125,20 @@ export default function ProductCard({product, onViewDetails}: ProductCardProps) 
           </div>
           
           {/* Product Title (Name) */}
-          <h3 className="text-base md:text-lg font-medium text-[var(--theme-text-primary)] tracking-tight leading-tight line-clamp-2 mb-1 group-hover:text-[var(--theme-accent)] transition-colors duration-300">
+          <h3 className="text-sm md:text-base font-medium text-[var(--theme-text-primary)] tracking-tight leading-tight line-clamp-2 mb-0.5 group-hover:text-[var(--theme-accent)] transition-colors duration-300">
             {product.name}
           </h3>
 
           {/* Quantity Badge Line */}
           {getQtyAndSpecs() && (
-            <div className="text-[11px] sm:text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap mb-2">
+            <div className="text-[10px] sm:text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap mb-1">
               {getQtyAndSpecs()}
             </div>
           )}
         </div>
 
         {/* Footer Panel (Prices) */}
-        <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-[var(--theme-border)]/40">
+        <div className="mt-auto pt-1.5 flex items-center justify-between gap-2 border-t border-[var(--theme-border)]/40">
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <span className="text-lg md:text-xl font-bold text-[var(--theme-text-primary)] tracking-tight">
               ₹{spVal.toLocaleString('en-IN')}

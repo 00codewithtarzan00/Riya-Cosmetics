@@ -580,24 +580,24 @@ export default function AdminPortal({
             className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md"
           >
             <div 
-              className="bg-white border border-[var(--theme-border)] w-full max-w-xl rounded-none p-3.5 sm:p-5 relative shadow-2xl overflow-y-auto max-h-[98vh] flex flex-col"
+              className="bg-white border border-[var(--theme-border)] w-full max-w-md rounded-none p-3 sm:p-4 relative shadow-2xl overflow-y-auto max-h-[96vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Icon */}
               <button
                 id="close-admin-form-modal"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-3.5 right-3.5 text-stone-400 hover:text-stone-900 p-1 cursor-pointer rounded-full hover:bg-stone-100 transition-all duration-200"
+                className="absolute top-3 right-3 text-stone-400 hover:text-stone-900 p-1 cursor-pointer rounded-full hover:bg-stone-100 transition-all duration-200"
                 aria-label="Close"
               >
                 <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <h3 className="text-xs sm:text-sm font-extrabold uppercase text-[var(--theme-text-primary)] tracking-widest mb-2 pb-1.5 border-b border-[var(--theme-border)]">
+              <h3 className="text-xs sm:text-sm font-extrabold uppercase text-[var(--theme-text-primary)] tracking-widest mb-2 pb-1 border-b border-[var(--theme-border)]">
                 {editingProduct ? 'Edit Formula Details' : 'Add New Cosmetic Formula'}
               </h3>
 
-              <form onSubmit={handleSaveProduct} className="space-y-2.5">
+              <form onSubmit={handleSaveProduct} className="space-y-2">
                 {/* Product Name */}
                 <div>
                   <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
@@ -767,21 +767,21 @@ export default function AdminPortal({
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Briefly describe formula highlights, finish type, and wear time..."
-                    rows={4}
-                    className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-y min-h-[90px]"
+                    rows={2}
+                    className="w-full px-2.5 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-y min-h-[50px]"
                     required
                   />
                 </div>
 
                 {/* Product Image Section: File upload up to 1MB OR image URL input */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <label className="block text-[9px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-0.5">
                     Product Image Selection
                   </label>
                   
-                  <div className="flex flex-row items-center gap-3">
+                  <div className="flex flex-row items-center gap-2.5">
                     {/* Image Preview Box (Equal size) */}
-                    <div className="relative w-24 h-24 sm:w-26 sm:h-26 bg-stone-50 border border-[var(--theme-border)]/70 rounded-[2px] flex flex-col items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-xs">
+                    <div className="relative w-18 h-18 sm:w-20 sm:h-20 bg-stone-50 border border-[var(--theme-border)]/70 rounded-[2px] flex flex-col items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-xs">
                       {formImage ? (
                         <>
                           <img
@@ -796,7 +796,7 @@ export default function AdminPortal({
                               e.stopPropagation();
                               setFormImage('');
                             }}
-                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[9px] font-bold uppercase tracking-wider cursor-pointer"
+                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px] font-bold uppercase tracking-wider cursor-pointer"
                           >
                             Remove
                           </button>
@@ -808,13 +808,13 @@ export default function AdminPortal({
                               <img
                                 src={categoryImagePresets[formCategory]}
                                 alt="Category preset fallback"
-                                className="w-12 h-12 object-contain opacity-50"
+                                className="w-8 h-8 object-contain opacity-50"
                                 referrerPolicy="no-referrer"
                               />
-                              <span className="text-[7.5px] uppercase tracking-wider text-stone-400 font-semibold mt-0.5">Preset Fallback</span>
+                              <span className="text-[7px] uppercase tracking-wider text-stone-400 font-semibold mt-0.5">Preset</span>
                             </div>
                           ) : (
-                            <span className="text-[9px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
+                            <span className="text-[8px] text-stone-400 uppercase tracking-widest font-mono">No Image</span>
                           )}
                         </div>
                       )}
@@ -835,7 +835,7 @@ export default function AdminPortal({
                         }
                       }}
                       onClick={() => document.getElementById('image-file-input')?.click()}
-                      className={`w-24 h-24 sm:w-26 sm:h-26 border-2 border-dashed rounded-[2px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-1.5 shrink-0 ${
+                      className={`w-18 h-18 sm:w-20 sm:h-20 border-2 border-dashed rounded-[2px] cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center p-1 shrink-0 ${
                         isDragging 
                           ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-glow)]' 
                           : 'border-[var(--theme-border)] bg-stone-50/40 hover:bg-stone-50/70 hover:border-stone-400'
@@ -852,10 +852,10 @@ export default function AdminPortal({
                         }}
                         className="hidden"
                       />
-                      <Upload className="w-5 h-5 text-stone-400 mb-0.5 animate-bounce" />
-                      <span className="text-[10px] font-bold text-[var(--theme-text-primary)] uppercase tracking-wider">Upload</span>
-                      <span className="text-[7.5px] text-[var(--theme-text-muted)] tracking-wider">Click or Drag</span>
-                      <span className="text-[7px] text-[var(--theme-text-muted)]/70 tracking-tight leading-none mt-0.5">Auto-Optimized</span>
+                      <Upload className="w-4 h-4 text-stone-400 mb-0.5 animate-bounce" />
+                      <span className="text-[9px] font-bold text-[var(--theme-text-primary)] uppercase tracking-wider">Upload</span>
+                      <span className="text-[7px] text-[var(--theme-text-muted)] tracking-wider">Click/Drag</span>
+                      <span className="text-[6.5px] text-[var(--theme-text-muted)]/70 tracking-tight leading-none">Optimized</span>
                     </div>
                   </div>
 
