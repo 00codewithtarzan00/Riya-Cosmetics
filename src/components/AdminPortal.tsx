@@ -154,6 +154,30 @@ export default function AdminPortal({
     return { totalCount, averagePrice, categoriesDistribution };
   }, [products]);
 
+  // Sort products from newest to oldest by time (using createdAt, fallback to updatedAt, then fallback to id string)
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      const timeA = a.createdAt || '';
+      const timeB = b.createdAt || '';
+      if (timeA && timeB) {
+        return new Date(timeB).getTime() - new Date(timeA).getTime();
+      }
+      if (timeA) return -1;
+      if (timeB) return 1;
+
+      const updateA = a.updatedAt || '';
+      const updateB = b.updatedAt || '';
+      if (updateA && updateB) {
+        return new Date(updateB).getTime() - new Date(updateA).getTime();
+      }
+      if (updateA) return -1;
+      if (updateB) return 1;
+
+      // Fallback
+      return String(b.id).localeCompare(String(a.id));
+    });
+  }, [products]);
+
   // Handle opening modal for Add or Edit
   const openModal = (product: Product | null = null) => {
     setFormError('');
@@ -419,7 +443,7 @@ export default function AdminPortal({
           </div>
 
           <div className="w-full">
-            {products.length > 0 ? (
+            {sortedProducts.length > 0 ? (
               <>
                 {/* Desktop and Tablet Table Mode */}
                 <div className="hidden md:block overflow-x-auto">
@@ -434,7 +458,7 @@ export default function AdminPortal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--theme-border)] text-sm text-[var(--theme-text-secondary)]">
-                      {products.map((p) => (
+                      {sortedProducts.map((p) => (
                         <tr key={p.id} id={`admin-row-${p.id}`} className="hover:bg-[#FAF9F5] transition-colors">
                           {/* Product Image preview */}
                           <td className="py-4 px-6">
@@ -507,7 +531,7 @@ export default function AdminPortal({
 
                 {/* Mobile Responsive Stack Mode */}
                 <div className="block md:hidden divide-y divide-[var(--theme-border)]">
-                  {products.map((p) => {
+                  {sortedProducts.map((p) => {
                     const mrpVal = p.mrp || p.priceInINR || 0;
                     const spVal = p.sp || p.priceInINR || 0;
                     const discountPercent = (mrpVal > 0 && mrpVal > spVal) ? Math.round(((mrpVal - spVal) / mrpVal) * 100) : 0;

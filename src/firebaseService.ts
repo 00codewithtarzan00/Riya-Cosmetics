@@ -77,6 +77,8 @@ export function subscribeToProducts(
             qtyVal: typeof data.qtyVal === 'number' ? data.qtyVal : undefined,
             qtyUnit: data.qtyUnit || '',
             inStock: data.inStock !== false,
+            createdAt: data.createdAt || '',
+            updatedAt: data.updatedAt || '',
           });
         });
         onUpdate(prodList);

@@ -14,6 +14,8 @@ export interface Product {
   qtyVal?: number;
   qtyUnit?: string;
   inStock?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ProductCardProps {

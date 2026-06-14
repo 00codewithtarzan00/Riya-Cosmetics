@@ -70,7 +70,27 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
     }
 
     // Sort operations
-    if (sortBy === 'price-low-high') {
+    if (sortBy === 'default') {
+      result.sort((a, b) => {
+        const timeA = a.createdAt || '';
+        const timeB = b.createdAt || '';
+        if (timeA && timeB) {
+          return new Date(timeB).getTime() - new Date(timeA).getTime();
+        }
+        if (timeA) return -1;
+        if (timeB) return 1;
+
+        const updateA = a.updatedAt || '';
+        const updateB = b.updatedAt || '';
+        if (updateA && updateB) {
+          return new Date(updateB).getTime() - new Date(updateA).getTime();
+        }
+        if (updateA) return -1;
+        if (updateB) return 1;
+
+        return String(b.id || '').localeCompare(String(a.id || ''));
+      });
+    } else if (sortBy === 'price-low-high') {
       result.sort((a, b) => {
         const aPrice = a.sp !== undefined ? a.sp : a.priceInINR;
         const bPrice = b.sp !== undefined ? b.sp : b.priceInINR;
@@ -166,7 +186,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full md:w-52 px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] transition-all cursor-pointer"
               >
-                <option value="default">Featured</option>
+                <option value="default">Newest First</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
                 <option value="name-asc">Alphabetical: A-Z</option>
