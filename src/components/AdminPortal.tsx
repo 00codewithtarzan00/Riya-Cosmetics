@@ -580,7 +580,7 @@ export default function AdminPortal({
             className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md"
           >
             <div 
-              className="bg-white border border-[var(--theme-border)] w-full max-w-md rounded-none p-3 sm:p-4 relative shadow-2xl overflow-y-auto max-h-[96vh] flex flex-col"
+              className="bg-white border border-[var(--theme-border)] w-full max-w-lg rounded-none p-4 sm:p-5 relative shadow-2xl overflow-y-auto max-h-[96vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Icon */}
