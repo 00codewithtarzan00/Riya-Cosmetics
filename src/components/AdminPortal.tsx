@@ -39,7 +39,7 @@ export default function AdminPortal({
   const [formSp, setFormSp] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formImage, setFormImage] = useState('');
-  const [formHasCustomQty, setFormHasCustomQty] = useState(false);
+  const [formHasCustomQty, setFormHasCustomQty] = useState(true);
   const [formQtyVal, setFormQtyVal] = useState('');
   const [formQtyUnit, setFormQtyUnit] = useState('ml');
   const [formInStock, setFormInStock] = useState(true);
@@ -203,7 +203,7 @@ export default function AdminPortal({
       setFormSp('');
       setFormDescription('');
       setFormImage('');
-      setFormHasCustomQty(false);
+      setFormHasCustomQty(true);
       setFormQtyVal('');
       setFormQtyUnit('ml');
       setFormInStock(true);
