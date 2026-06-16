@@ -3,14 +3,16 @@ import {Product} from './ProductCard.tsx';
 import {
   Lock, Eye, EyeOff, LayoutDashboard, Plus, Pencil, Trash2, 
   Settings, LogOut, Check, Info, Coins, BarChart3, Tag, Package,
-  Upload, Image as ImageIcon, X
+  Upload, Image as ImageIcon, X, Sliders, Play, Trash, FileText, CheckCircle
 } from 'lucide-react';
+import { SettingsConfig, dbUpdateBanners } from '../firebaseService';
 
 interface AdminPortalProps {
   products: Product[];
   onAddProduct: (product: Omit<Product, 'id'>) => void;
   onUpdateProduct: (product: Product) => void;
   onDeleteProduct: (id: string | number) => void;
+  settings: SettingsConfig;
 }
 
 export default function AdminPortal({
@@ -18,12 +20,114 @@ export default function AdminPortal({
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct,
+  settings,
 }: AdminPortalProps) {
   // Authentication local states
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
+
+  // Active sub-dashboard tab: 'inventory' | 'settings'
+  const [activeTab, setActiveTab] = useState<'inventory' | 'settings'>('inventory');
+
+  // Dynamic Banners Local States
+  const [b1Type, setB1Type] = useState<'None' | 'Image' | 'Video' | 'Text'>('None');
+  const [b1Urls, setB1Urls] = useState<string[]>([]);
+  const [b1Text, setB1Text] = useState('');
+  const [b1TextColor, setB1TextColor] = useState('#ffffff');
+  const [b1TextSize, setB1TextSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'>('2xl');
+
+  const [b2Type, setB2Type] = useState<'None' | 'Image' | 'Video' | 'Text'>('None');
+  const [b2Urls, setB2Urls] = useState<string[]>([]);
+  const [b2Text, setB2Text] = useState('');
+  const [b2TextColor, setB2TextColor] = useState('#ffffff');
+  const [b2TextSize, setB2TextSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'>('3xl');
+
+  // Draft URL inputs for slide carousels
+  const [b1NewInputUrl, setB1NewInputUrl] = useState('');
+  const [b2NewInputUrl, setB2NewInputUrl] = useState('');
+
+  // Local drop triggers
+  const [b1IsDragging, setB1IsDragging] = useState(false);
+  const [b2IsDragging, setB2IsDragging] = useState(false);
+
+  // Firestore update states
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Sync state reactively with incoming Firestore updates
+  useEffect(() => {
+    if (settings) {
+      setB1Type(settings.banner1?.type || 'None');
+      setB1Urls(settings.banner1?.urls || []);
+      setB1Text(settings.banner1?.text || '');
+      setB1TextColor(settings.banner1?.textColor || '#ffffff');
+      setB1TextSize(settings.banner1?.textSize || '2xl');
+
+      setB2Type(settings.banner2?.type || 'None');
+      setB2Urls(settings.banner2?.urls || []);
+      setB2Text(settings.banner2?.text || '');
+      setB2TextColor(settings.banner2?.textColor || '#ffffff');
+      setB2TextSize(settings.banner2?.textSize || '3xl');
+    }
+  }, [settings]);
+
+  // Read dropped file to base64 and append to urls list
+  const handleBannerUrlDrop = (file: File, bannerNumber: 1 | 2) => {
+    if (!file) return;
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      alert('Only image and video files are supported for banner slide carousel.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (typeof result === 'string') {
+        if (bannerNumber === 1) {
+          setB1Urls((prev) => [...prev, result]);
+        } else {
+          setB2Urls((prev) => [...prev, result]);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Safe save handler syncing our dual banners setting to Firestore
+  const handleSaveSettings = async () => {
+    setSaveLoading(true);
+    setSaveSuccess(false);
+    try {
+      await dbUpdateBanners({
+        banner1: {
+          type: b1Type,
+          urls: b1Urls,
+          text: b1Text,
+          textColor: b1TextColor,
+          textSize: b1TextSize,
+        },
+        banner2: {
+          type: b2Type,
+          urls: b2Urls,
+          text: b2Text,
+          textColor: b2TextColor,
+          textSize: b2TextSize,
+        },
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to sync banner settings: ', err);
+      alert('Failed to preserve banner configurations. Review security rules.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   // Form modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -433,8 +537,40 @@ export default function AdminPortal({
           </div>
         </div>
 
-        {/* Catalog Administration Inventory Table */}
-        <div className="bg-white border border-[var(--theme-border)] shadow-sm overflow-hidden">
+        {/* Tab Selection Navigation */}
+        <div className="flex border-b border-[var(--theme-border)] mb-8 gap-6">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`pb-4 px-1 text-xs font-bold tracking-widest uppercase transition-all relative cursor-pointer ${
+              activeTab === 'inventory' 
+                ? 'text-[var(--theme-text-primary)] border-b-2 border-[var(--theme-accent)] font-extrabold' 
+                : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Package className="w-3.5 h-3.5" />
+              Formula Inventory ({products.length})
+            </div>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`pb-4 px-1 text-xs font-bold tracking-widest uppercase transition-all relative cursor-pointer ${
+              activeTab === 'settings' 
+                ? 'text-[var(--theme-text-primary)] border-b-2 border-[var(--theme-accent)] font-extrabold' 
+                : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Sliders className="w-3.5 h-3.5" />
+              Settings Manager
+            </div>
+          </button>
+        </div>
+
+        {activeTab === 'inventory' ? (
+          /* Catalog Administration Inventory Table */
+          <div className="bg-white border border-[var(--theme-border)] shadow-sm overflow-hidden">
           <div className="p-6 border-b border-[var(--theme-border)] flex items-center justify-between">
             <h3 className="text-md uppercase tracking-widest font-semibold text-[var(--theme-text-primary)]">
               Catalogue Management Matrix
@@ -596,6 +732,397 @@ export default function AdminPortal({
             )}
           </div>
         </div>
+        ) : (
+          /* Beautiful Interactive Settings Manager Dashboard */
+          <div className="space-y-8 animate-fadeIn" id="admin-settings-manager">
+            {/* Context manual notice */}
+            <div className="bg-[#FAF9F5] border border-[var(--theme-border)] p-5 flex items-start gap-4 shadow-xs select-none">
+              <Info className="w-5 h-5 text-[var(--theme-accent)] shrink-0 mt-0.5 animate-pulse" />
+              <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-[var(--theme-text-primary)]">Dual-Banner & Slide Configuration Desk</p>
+                <p className="text-xs text-[var(--theme-text-secondary)] leading-relaxed font-semibold">
+                  Design beautiful custom full-width hero slideshows for the shop's home landing space. Toggle through <strong>None</strong> (hidden), <strong>Image</strong>, <strong>Video</strong>, or <strong>Text</strong> display modes. Supply any public cover URLs, or drag & drop brand assets directly onto cards to populate responsive carousels automatically.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Banner 1 configuration Card */}
+              <div 
+                className={`bg-white border p-6 flex flex-col gap-6 shadow-xs relative transition-all duration-300 ${
+                  b1IsDragging ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-glow)] ring-2 ring-[var(--theme-accent)]/15' : 'border-[var(--theme-border)]'
+                }`}
+                onDragOver={(e) => { e.preventDefault(); setB1IsDragging(true); }}
+                onDragLeave={() => setB1IsDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setB1IsDragging(false); if(e.dataTransfer.files?.[0]) handleBannerUrlDrop(e.dataTransfer.files[0], 1); }}
+              >
+                <div className="border-b border-[var(--theme-border)] pb-4 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-[0.25em] font-mono font-bold text-[var(--theme-accent)]">Zone Alpha</span>
+                    <h4 className="text-md font-semibold tracking-wide uppercase text-[var(--theme-text-primary)] mt-0.5">Banner 1 (Main Hero Carousel)</h4>
+                  </div>
+                  <span className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase rounded-xs ${
+                    b1Type === 'None' ? 'bg-stone-100 text-stone-500' : 'bg-[var(--theme-accent-glow)] text-[var(--theme-accent)] border border-[var(--theme-accent)]/20 shadow-2xs'
+                  }`}>
+                    {b1Type}
+                  </span>
+                </div>
+
+                {/* Type Selection Switcher */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#78716c] block">Toggle Layout Mode</span>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {(['None', 'Image', 'Video', 'Text'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setB1Type(t)}
+                        className={`py-2 px-1 text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                          b1Type === t 
+                            ? 'bg-[var(--theme-accent)] border-[var(--theme-accent)] text-white shadow-xs' 
+                            : 'bg-white border-stone-200 text-stone-500 hover:bg-[#FAF9F5]'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {b1Type !== 'None' && (
+                  <>
+                    {/* Image / Video Slider Configuration panel */}
+                    {(b1Type === 'Image' || b1Type === 'Video') && (
+                      <div className="space-y-4 animate-fadeIn">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#78716c] block">Media Catalog Links</span>
+                        
+                        {/* URL Direct text addition input */}
+                        <div className="flex gap-2">
+                          <input 
+                            type="text"
+                            placeholder={`Input absolute Unsplash/web link for ${b1Type.toLowerCase()}`}
+                            value={b1NewInputUrl}
+                            onChange={(e) => setB1NewInputUrl(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-accent)] rounded-none font-medium"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (b1NewInputUrl.trim() === '') return;
+                              setB1Urls((prev) => [...prev, b1NewInputUrl.trim()]);
+                              setB1NewInputUrl('');
+                            }}
+                            className="bg-stone-900 hover:bg-stone-800 text-white px-4 text-xs font-bold uppercase tracking-wider cursor-pointer rounded-none animate-pulse"
+                          >
+                            Add
+                          </button>
+                        </div>
+
+                        {/* Interactive Drag zone */}
+                        <div className="border border-dashed border-stone-300 hover:border-[var(--theme-accent)] p-5 text-center bg-stone-50 hover:bg-stone-100/40 transition-all cursor-pointer select-none">
+                          <input 
+                            type="file" 
+                            id="banner1-file-drag" 
+                            className="hidden" 
+                            accept={b1Type === 'Image' ? 'image/*' : 'video/*'}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) handleBannerUrlDrop(e.target.files[0], 1);
+                            }}
+                          />
+                          <label htmlFor="banner1-file-drag" className="cursor-pointer space-y-1 block">
+                            <Upload className="w-5 h-5 text-stone-400 mx-auto" />
+                            <div className="text-xs text-stone-600 font-semibold font-sans">
+                              Drag & Drop {b1Type === 'Image' ? 'Image asset' : 'Video asset'} here
+                            </div>
+                            <div className="text-[9px] text-[#78716c] font-mono">or click to browse local files</div>
+                          </label>
+                        </div>
+
+                        {/* List items with miniature visual overlays */}
+                        {b1Urls.length > 0 ? (
+                          <div className="space-y-2">
+                            <span className="text-[9px] uppercase font-bold tracking-widest text-[#a8a29e]">Slides Carousel Items ({b1Urls.length})</span>
+                            <div className="max-h-52 overflow-y-auto space-y-1.5 border border-stone-200 p-2 bg-stone-50 divide-y divide-stone-100">
+                              {b1Urls.map((url, index) => (
+                                <div key={index} className="flex items-center justify-between py-1.5 gap-2">
+                                  <div className="flex items-center gap-2 overflow-hidden truncate">
+                                    <div className="w-10 h-7 bg-stone-950 border border-stone-200/50 shrink-0 overflow-hidden flex items-center justify-center text-white text-[8px] font-mono">
+                                      {b1Type === 'Image' ? (
+                                        <img src={url} alt="Slide thumb" className="w-full h-full object-cover" />
+                                      ) : (
+                                        <Play className="w-3 h-3 text-[var(--theme-accent)] fill-[var(--theme-accent)]" />
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] font-mono text-stone-500 truncate max-w-[180px] font-semibold" title={url}>{url}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setB1Urls((prev) => prev.filter((_, i) => i !== index))}
+                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-stone-200/50 rounded-xs transition"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 bg-stone-50 border border-stone-200 text-stone-400 text-[10px] italic font-medium">
+                            No active slides yet. Insert a link or drop a file to start!
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Banner display overlay text and visual characteristics */}
+                    <div className="space-y-3 pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#78716c] block">Overlay Typography Controls</span>
+                      <input 
+                        type="text"
+                        placeholder="Type display text (e.g. SUMMER LUXURY LOOKBOOK 2026)"
+                        value={b1Text}
+                        onChange={(e) => setB1Text(e.target.value)}
+                        className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-accent)] rounded-none font-medium"
+                      />
+
+                      {b1Text.trim() !== '' && (
+                        <div className="grid grid-cols-2 gap-3 bg-[#FAF9F5] border border-[var(--theme-border)] p-4 animate-fadeIn">
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Color Picker</span>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="color"
+                                value={b1TextColor}
+                                onChange={(e) => setB1TextColor(e.target.value)}
+                                className="w-10 h-7 border border-[#e4e1db] cursor-pointer p-0 bg-transparent rounded-none"
+                              />
+                              <span className="text-xs font-mono font-bold text-stone-600 uppercase">{b1TextColor}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text size</span>
+                            <select
+                              value={b1TextSize}
+                              onChange={(e) => setB1TextSize(e.target.value as any)}
+                              className="w-full text-xs p-1 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                            >
+                              {['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'].map((sz) => (
+                                <option key={sz} value={sz}>{sz.toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Banner 2 configuration Card */}
+              <div 
+                className={`bg-white border p-6 flex flex-col gap-6 shadow-xs relative transition-all duration-300 ${
+                  b2IsDragging ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-glow)] ring-2 ring-[var(--theme-accent)]/15' : 'border-[var(--theme-border)]'
+                }`}
+                onDragOver={(e) => { e.preventDefault(); setB2IsDragging(true); }}
+                onDragLeave={() => setB2IsDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setB2IsDragging(false); if(e.dataTransfer.files?.[0]) handleBannerUrlDrop(e.dataTransfer.files[0], 2); }}
+              >
+                <div className="border-b border-[var(--theme-border)] pb-4 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-[0.25em] font-mono font-bold text-[var(--theme-accent)]">Zone Omega</span>
+                    <h4 className="text-md font-semibold tracking-wide uppercase text-[var(--theme-text-primary)] mt-0.5">Banner 2 (Secondary Promo Slider)</h4>
+                  </div>
+                  <span className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase rounded-xs ${
+                    b2Type === 'None' ? 'bg-stone-100 text-stone-500' : 'bg-[var(--theme-accent-glow)] text-[var(--theme-accent)] border border-[var(--theme-accent)]/20 shadow-2xs'
+                  }`}>
+                    {b2Type}
+                  </span>
+                </div>
+
+                {/* Type Selection Switcher */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#78716c] block">Toggle Layout Mode</span>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {(['None', 'Image', 'Video', 'Text'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setB2Type(t)}
+                        className={`py-2 px-1 text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                          b2Type === t 
+                            ? 'bg-[var(--theme-accent)] border-[var(--theme-accent)] text-white shadow-xs' 
+                            : 'bg-white border-stone-200 text-stone-500 hover:bg-[#FAF9F5]'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {b2Type !== 'None' && (
+                  <>
+                    {/* Image / Video Slider Configuration panel */}
+                    {(b2Type === 'Image' || b2Type === 'Video') && (
+                      <div className="space-y-4 animate-fadeIn">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#78716c] block">Media Catalog Links</span>
+                        
+                        {/* URL Direct text addition input */}
+                        <div className="flex gap-2">
+                          <input 
+                            type="text"
+                            placeholder={`Input absolute Unsplash/web link for ${b2Type.toLowerCase()}`}
+                            value={b2NewInputUrl}
+                            onChange={(e) => setB2NewInputUrl(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-accent)] rounded-none font-medium"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (b2NewInputUrl.trim() === '') return;
+                              setB2Urls((prev) => [...prev, b2NewInputUrl.trim()]);
+                              setB2NewInputUrl('');
+                            }}
+                            className="bg-stone-900 hover:bg-stone-800 text-white px-4 text-xs font-bold uppercase tracking-wider cursor-pointer rounded-none"
+                          >
+                            Add
+                          </button>
+                        </div>
+
+                        {/* Interactive Drag zone */}
+                        <div className="border border-dashed border-stone-300 hover:border-[var(--theme-accent)] p-5 text-center bg-stone-50 hover:bg-stone-100/40 transition-all cursor-pointer select-none">
+                          <input 
+                            type="file" 
+                            id="banner2-file-drag" 
+                            className="hidden" 
+                            accept={b2Type === 'Image' ? 'image/*' : 'video/*'}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) handleBannerUrlDrop(e.target.files[0], 2);
+                            }}
+                          />
+                          <label htmlFor="banner2-file-drag" className="cursor-pointer space-y-1 block">
+                            <Upload className="w-5 h-5 text-stone-400 mx-auto" />
+                            <div className="text-xs text-stone-600 font-semibold font-sans">
+                              Drag & Drop {b2Type === 'Image' ? 'Image asset' : 'Video asset'} here
+                            </div>
+                            <div className="text-[9px] text-[#78716c] font-mono">or click to browse local files</div>
+                          </label>
+                        </div>
+
+                        {/* List items with miniature visual overlays */}
+                        {b2Urls.length > 0 ? (
+                          <div className="space-y-2">
+                            <span className="text-[9px] uppercase font-bold tracking-widest text-[#a8a29e]">Slides Carousel Items ({b2Urls.length})</span>
+                            <div className="max-h-52 overflow-y-auto space-y-1.5 border border-stone-200 p-2 bg-stone-50 divide-y divide-stone-100">
+                              {b2Urls.map((url, index) => (
+                                <div key={index} className="flex items-center justify-between py-1.5 gap-2">
+                                  <div className="flex items-center gap-2 overflow-hidden truncate">
+                                    <div className="w-10 h-7 bg-stone-950 border border-stone-200/50 shrink-0 overflow-hidden flex items-center justify-center text-white text-[8px] font-mono">
+                                      {b2Type === 'Image' ? (
+                                        <img src={url} alt="Slide thumb" className="w-full h-full object-cover" />
+                                      ) : (
+                                        <Play className="w-3 h-3 text-[var(--theme-accent)] fill-[var(--theme-accent)]" />
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] font-mono text-stone-500 truncate max-w-[180px] font-semibold" title={url}>{url}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setB2Urls((prev) => prev.filter((_, i) => i !== index))}
+                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-stone-200/50 rounded-xs transition"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 bg-stone-50 border border-stone-200 text-stone-400 text-[10px] italic font-medium">
+                            No active slides yet. Insert a link or drop a file to start!
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Banner display overlay text and visual characteristics */}
+                    <div className="space-y-3 pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#78716c] block">Overlay Typography Controls</span>
+                      <input 
+                        type="text"
+                        placeholder="Type display text (e.g. CHIC GLOW GLAMOUR ESSENTIALS)"
+                        value={b2Text}
+                        onChange={(e) => setB2Text(e.target.value)}
+                        className="w-full px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-accent)] rounded-none font-medium"
+                      />
+
+                      {b2Text.trim() !== '' && (
+                        <div className="grid grid-cols-2 gap-3 bg-[#FAF9F5] border border-[var(--theme-border)] p-4 animate-fadeIn">
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Color Picker</span>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="color"
+                                value={b2TextColor}
+                                onChange={(e) => setB2TextColor(e.target.value)}
+                                className="w-10 h-7 border border-[#e4e1db] cursor-pointer p-0 bg-transparent rounded-none"
+                              />
+                              <span className="text-xs font-mono font-bold text-stone-600 uppercase">{b2TextColor}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text size</span>
+                            <select
+                              value={b2TextSize}
+                              onChange={(e) => setB2TextSize(e.target.value as any)}
+                              className="w-full text-xs p-1 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                            >
+                              {['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'].map((sz) => (
+                                <option key={sz} value={sz}>{sz.toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Glowing Action Buttons footer block */}
+            <div className="pt-6 border-t border-[var(--theme-border)] flex items-center justify-end gap-4 select-none">
+              {saveSuccess && (
+                <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold tracking-wider uppercase animate-pulse">
+                  <CheckCircle className="w-4 h-4 animate-bounce" />
+                  Banners Sync Complete!
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                disabled={saveLoading}
+                className="flex items-center gap-2 px-8 py-3.5 bg-[var(--theme-accent)] hover:bg-[var(--theme-accent-hover)] disabled:bg-stone-300 text-white text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-sm hover:shadow active:scale-98 disabled:cursor-not-allowed select-none cursor-pointer"
+              >
+                {saveLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Save Configuration
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Modal Entry (Covers both ADD and EDIT fields setup) */}
         {isModalOpen && (

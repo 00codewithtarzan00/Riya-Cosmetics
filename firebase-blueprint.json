@@ -21,12 +21,40 @@
         "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was updated" }
       },
       "required": ["name", "category", "priceInINR", "mrp", "sp", "description", "image"]
+    },
+    "BannerConfig": {
+      "title": "BannerConfig",
+      "description": "Configuration schema for one home page banner slider",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["None", "Image", "Video", "Text"], "description": "Current active mode" },
+        "urls": { "type": "array", "description": "List of slides (either image locations or autoplay videos)" },
+        "text": { "type": "string", "description": "Banner display overlay text" },
+        "textColor": { "type": "string", "description": "Banner text hex color code" },
+        "textSize": { "type": "string", "enum": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"], "description": "Visual font size class" }
+      },
+      "required": ["type", "urls", "text", "textColor", "textSize"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Generic application setting document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Configuration key" },
+        "banner1": { "type": "object", "$ref": "BannerConfig", "description": "Banner 1 configuration details" },
+        "banner2": { "type": "object", "$ref": "BannerConfig", "description": "Banner 2 configuration details" }
+      },
+      "required": ["banner1", "banner2"]
     }
   },
   "firestore": {
     "/products/{productId}": {
       "schema": "Product",
       "description": "Catalog of precious cosmetics and makeup items"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "Application settings and dynamic slider configuration"
     }
   }
 }

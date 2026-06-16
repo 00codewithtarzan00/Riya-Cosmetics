@@ -1,6 +1,8 @@
 import {useState, useMemo, useEffect, useRef} from 'react';
 import ProductCard, {Product, formatCustomQuantity} from './ProductCard.tsx';
 import {Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert} from 'lucide-react';
+import { SettingsConfig } from '../firebaseService';
+import BannerSlider from './BannerSlider';
 
 function ProductCardSkeleton() {
   return (
@@ -36,9 +38,10 @@ function ProductCardSkeleton() {
 interface ProductCatalogProps {
   products: Product[];
   isLoading?: boolean;
+  settings?: SettingsConfig | null;
 }
 
-export default function ProductCatalog({products, isLoading = false}: ProductCatalogProps) {
+export default function ProductCatalog({products, isLoading = false, settings}: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('default');
@@ -153,7 +156,7 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
       <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12">
         
         {/* Searching, Sorting, and Category Controls Group */}
-        <div className="space-y-6 mb-12">
+        <div className="mb-6">
           {/* Top Control Bar: Search and Sort */}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 border border-[var(--theme-border)]">
             {/* Search Input */}
@@ -193,31 +196,50 @@ export default function ProductCatalog({products, isLoading = false}: ProductCat
               </select>
             </div>
           </div>
+        </div>
 
-          {/* Categorization Tabs */}
-          <div className="flex items-center gap-2 border-b border-[var(--theme-border)] pb-4 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--theme-accent)] mr-2 shrink-0 hidden md:block" />
-            <div className="flex items-center gap-2 overflow-visible md:flex-wrap pb-0.5 md:pb-0">
-              {categories.map((cat) => {
-                const isActive = selectedCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    id={`cat-tab-${cat.toLowerCase()}`}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 sm:px-5 py-2 text-xs font-semibold tracking-wider capitalize transition-all duration-300 rounded-none cursor-pointer border whitespace-nowrap ${
-                      isActive 
-                        ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]' 
-                        : 'bg-transparent text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border)]'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
+        {/* Premium Banner 1 Slider System (Below Search Bar) */}
+        {settings?.banner1 && settings.banner1.type !== 'None' && (
+          <div id="catalog-home-banner-1" className="w-full bg-stone-100 border border-[var(--theme-border)] mb-8 overflow-hidden shadow-2xs">
+            <BannerSlider banner={settings.banner1} title="Banner 1" />
+          </div>
+        )}
+
+        {/* Categorization Tabs */}
+        <div 
+          className={`sticky top-[80px] z-30 py-3.5 border-b border-[var(--theme-border)] flex items-center gap-2 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all ${
+            settings?.banner2 && settings.banner2.type !== 'None' ? 'mb-8' : 'mb-12'
+          }`}
+          style={{ backgroundColor: 'rgba(250, 249, 245, 0.95)' }}
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--theme-accent)] mr-2 shrink-0 hidden md:block" />
+          <div className="flex items-center gap-2 overflow-visible md:flex-wrap pb-0.5 md:pb-0">
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  id={`cat-tab-${cat.toLowerCase()}`}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 sm:px-5 py-2 text-xs font-semibold tracking-wider capitalize transition-all duration-300 rounded-none cursor-pointer border whitespace-nowrap ${
+                    isActive 
+                      ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]' 
+                      : 'bg-transparent text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border)]'
+                  }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Premium Banner 2 Slider System (Below Category Bar) */}
+        {settings?.banner2 && settings.banner2.type !== 'None' && (
+          <div id="catalog-home-banner-2" className="w-full bg-stone-100 border border-[var(--theme-border)] mb-12 overflow-hidden shadow-2xs">
+            <BannerSlider banner={settings.banner2} title="Banner 2" />
+          </div>
+        )}
 
         {/* Product Grid */}
         {isLoading ? (

@@ -5,7 +5,8 @@ import {
   deleteDoc, 
   doc, 
   onSnapshot, 
-  query 
+  query,
+  setDoc
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { Product } from './components/ProductCard';
@@ -152,5 +153,113 @@ export async function dbDeleteProduct(productId: string | number): Promise<void>
     await deleteDoc(docRef);
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, docPath);
+  }
+}
+
+// Dynamics Banners Types and Firestore Integration
+export interface BannerConfig {
+  type: 'None' | 'Image' | 'Video' | 'Text';
+  urls: string[];
+  text: string;
+  textColor: string;
+  textSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+}
+
+export interface SettingsConfig {
+  banner1: BannerConfig;
+  banner2: BannerConfig;
+}
+
+export const DEFAULT_SETTINGS: SettingsConfig = {
+  banner1: {
+    type: 'Image',
+    urls: [
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=1200',
+      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200'
+    ],
+    text: 'FLAWLESS SKINCARE COUTURE',
+    textColor: '#ffffff',
+    textSize: '2xl'
+  },
+  banner2: {
+    type: 'Image',
+    urls: [
+      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=1200',
+      'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=1200'
+    ],
+    text: 'LUXURY MAKEUP SELECTION',
+    textColor: '#ffffff',
+    textSize: '3xl'
+  }
+};
+
+const SETTINGS_COLLECTION = 'settings';
+const BANNERS_DOC_NAME = 'banners';
+
+// Subscribe to banner settings document
+export function subscribeToBanners(
+  onUpdate: (settings: SettingsConfig) => void,
+  onError?: (error: Error) => void
+) {
+  const docRef = doc(db, SETTINGS_COLLECTION, BANNERS_DOC_NAME);
+  return onSnapshot(
+    docRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        const settings: SettingsConfig = {
+          banner1: {
+            type: data.banner1?.type || 'None',
+            urls: Array.isArray(data.banner1?.urls) ? data.banner1.urls : [],
+            text: data.banner1?.text || '',
+            textColor: data.banner1?.textColor || '#ffffff',
+            textSize: data.banner1?.textSize || '2xl',
+          },
+          banner2: {
+            type: data.banner2?.type || 'None',
+            urls: Array.isArray(data.banner2?.urls) ? data.banner2.urls : [],
+            text: data.banner2?.text || '',
+            textColor: data.banner2?.textColor || '#ffffff',
+            textSize: data.banner2?.textSize || '2xl',
+          }
+        };
+        onUpdate(settings);
+      } else {
+        // Document doesn't exist, return default preset
+        onUpdate(DEFAULT_SETTINGS);
+      }
+    },
+    (error) => {
+      if (onError) {
+        onError(error);
+      } else {
+        handleFirestoreError(error, OperationType.GET, `${SETTINGS_COLLECTION}/${BANNERS_DOC_NAME}`);
+      }
+    }
+  );
+}
+
+// Update settings document in firestore
+export async function dbUpdateBanners(settings: SettingsConfig): Promise<void> {
+  const docRef = doc(db, SETTINGS_COLLECTION, BANNERS_DOC_NAME);
+  try {
+    await setDoc(docRef, {
+      banner1: {
+        type: settings.banner1.type,
+        urls: settings.banner1.urls,
+        text: settings.banner1.text,
+        textColor: settings.banner1.textColor,
+        textSize: settings.banner1.textSize
+      },
+      banner2: {
+        type: settings.banner2.type,
+        urls: settings.banner2.urls,
+        text: settings.banner2.text,
+        textColor: settings.banner2.textColor,
+        textSize: settings.banner2.textSize
+      }
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${SETTINGS_COLLECTION}/${BANNERS_DOC_NAME}`);
   }
 }

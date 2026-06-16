@@ -4,13 +4,14 @@ import ProductCatalog from './components/ProductCatalog.tsx';
 import AdminPortal from './components/AdminPortal.tsx';
 import {Product} from './components/ProductCard.tsx';
 import {Heart} from 'lucide-react';
-import { subscribeToProducts, dbAddProduct, dbUpdateProduct, dbDeleteProduct } from './firebaseService.ts';
+import {subscribeToProducts, dbAddProduct, dbUpdateProduct, dbDeleteProduct, SettingsConfig, subscribeToBanners, DEFAULT_SETTINGS} from './firebaseService.ts';
 
 export default function App() {
   const [currentView, setView] = useState<'catalog' | 'admin'>('catalog');
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [settings, setSettings] = useState<SettingsConfig>(DEFAULT_SETTINGS);
 
   // Set up real-time connection and active synchronization subscription
   useEffect(() => {
@@ -22,8 +23,15 @@ export default function App() {
       setIsLoading(false);
     });
 
+    const unsubscribeBanners = subscribeToBanners((bannerSettings) => {
+      setSettings(bannerSettings);
+    }, (error) => {
+      console.error('Banner sync error:', error);
+    });
+
     return () => {
       unsubscribe?.();
+      unsubscribeBanners?.();
     };
   }, []);
 
@@ -65,7 +73,7 @@ export default function App() {
       {/* Main rendering area */}
       {currentView === 'catalog' ? (
         /* Public interactive catalog lists */
-        <ProductCatalog products={products} isLoading={isLoading} />
+        <ProductCatalog products={products} isLoading={isLoading} settings={settings} />
       ) : (
         /* Administration Guarded Screen space */
         <AdminPortal 
@@ -73,6 +81,7 @@ export default function App() {
           onAddProduct={handleAddProduct}
           onUpdateProduct={handleUpdateProduct}
           onDeleteProduct={handleDeleteProduct}
+          settings={settings}
         />
       )}
 
