@@ -86,17 +86,17 @@ export default function App() {
       )}
 
       {/* Shared Premium footer section */}
-      <footer id="riya-footer" className="bg-[#FAF9F5] py-12 border-t border-[var(--theme-border)] text-center">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center gap-6">
+      <footer id="riya-footer" className="bg-[#FAF9F5] py-8 border-t border-[var(--theme-border)] text-center">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center gap-4">
           <span className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-text-primary)]">
             Riya <span className="font-serif italic text-[var(--theme-accent)]">Cosmetics</span>
           </span>
           <p className="text-xs text-[var(--theme-text-secondary)] max-w-lg font-medium leading-relaxed">
             Designed for retail indexing only. Direct purchases are not hosted here. Authenticated luxury styling solutions are available through salon counters.
           </p>
-          <div className="border-t border-[var(--theme-border)] mt-8 pt-8 w-full flex flex-col md:flex-row items-center justify-between text-[10px] text-[var(--theme-text-muted)] font-mono tracking-widest uppercase">
+          <div className="border-t border-[var(--theme-border)] mt-4 pt-4 w-full flex flex-col md:flex-row items-center justify-between text-[10px] text-[var(--theme-text-muted)] font-mono tracking-widest uppercase">
             <span>© 2026 RIYA COSMETICS INC. ALL RIGHTS RESERVED.</span>
-            <span className="flex items-center gap-1.5 mt-4 md:mt-0">
+            <span className="flex items-center gap-1.5 mt-2 md:mt-0">
               Made with <Heart className="w-3 h-3 text-[var(--theme-accent)] animate-pulse" /> for Elegance
             </span>
           </div>

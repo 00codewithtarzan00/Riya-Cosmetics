@@ -163,6 +163,12 @@ export interface BannerConfig {
   text: string;
   textColor: string;
   textSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+  duration?: number;
+  textTag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  alignment?: 'left' | 'center' | 'right';
+  bgColor?: string;
+  marqueeEnabled?: boolean;
+  marqueeDirection?: 'ltr' | 'rtl';
 }
 
 export interface SettingsConfig {
@@ -179,7 +185,13 @@ export const DEFAULT_SETTINGS: SettingsConfig = {
     ],
     text: 'FLAWLESS SKINCARE COUTURE',
     textColor: '#ffffff',
-    textSize: '2xl'
+    textSize: '2xl',
+    duration: 5,
+    textTag: 'h2',
+    alignment: 'left',
+    bgColor: '#1c1917',
+    marqueeEnabled: false,
+    marqueeDirection: 'rtl'
   },
   banner2: {
     type: 'Image',
@@ -189,7 +201,13 @@ export const DEFAULT_SETTINGS: SettingsConfig = {
     ],
     text: 'LUXURY MAKEUP SELECTION',
     textColor: '#ffffff',
-    textSize: '3xl'
+    textSize: '3xl',
+    duration: 5,
+    textTag: 'h3',
+    alignment: 'left',
+    bgColor: '#141211',
+    marqueeEnabled: false,
+    marqueeDirection: 'rtl'
   }
 };
 
@@ -214,6 +232,12 @@ export function subscribeToBanners(
             text: data.banner1?.text || '',
             textColor: data.banner1?.textColor || '#ffffff',
             textSize: data.banner1?.textSize || '2xl',
+            duration: typeof data.banner1?.duration === 'number' ? data.banner1.duration : 5,
+            textTag: data.banner1?.textTag || 'h2',
+            alignment: data.banner1?.alignment || 'left',
+            bgColor: data.banner1?.bgColor || '#1c1917',
+            marqueeEnabled: data.banner1?.marqueeEnabled || false,
+            marqueeDirection: data.banner1?.marqueeDirection || 'rtl',
           },
           banner2: {
             type: data.banner2?.type || 'None',
@@ -221,6 +245,12 @@ export function subscribeToBanners(
             text: data.banner2?.text || '',
             textColor: data.banner2?.textColor || '#ffffff',
             textSize: data.banner2?.textSize || '2xl',
+            duration: typeof data.banner2?.duration === 'number' ? data.banner2.duration : 5,
+            textTag: data.banner2?.textTag || 'h3',
+            alignment: data.banner2?.alignment || 'left',
+            bgColor: data.banner2?.bgColor || '#141211',
+            marqueeEnabled: data.banner2?.marqueeEnabled || false,
+            marqueeDirection: data.banner2?.marqueeDirection || 'rtl',
           }
         };
         onUpdate(settings);
@@ -249,14 +279,26 @@ export async function dbUpdateBanners(settings: SettingsConfig): Promise<void> {
         urls: settings.banner1.urls,
         text: settings.banner1.text,
         textColor: settings.banner1.textColor,
-        textSize: settings.banner1.textSize
+        textSize: settings.banner1.textSize,
+        duration: settings.banner1.duration || 5,
+        textTag: settings.banner1.textTag || 'h2',
+        alignment: settings.banner1.alignment || 'left',
+        bgColor: settings.banner1.bgColor || '#1c1917',
+        marqueeEnabled: settings.banner1.marqueeEnabled || false,
+        marqueeDirection: settings.banner1.marqueeDirection || 'rtl'
       },
       banner2: {
         type: settings.banner2.type,
         urls: settings.banner2.urls,
         text: settings.banner2.text,
         textColor: settings.banner2.textColor,
-        textSize: settings.banner2.textSize
+        textSize: settings.banner2.textSize,
+        duration: settings.banner2.duration || 5,
+        textTag: settings.banner2.textTag || 'h3',
+        alignment: settings.banner2.alignment || 'left',
+        bgColor: settings.banner2.bgColor || '#141211',
+        marqueeEnabled: settings.banner2.marqueeEnabled || false,
+        marqueeDirection: settings.banner2.marqueeDirection || 'rtl'
       }
     });
   } catch (error) {

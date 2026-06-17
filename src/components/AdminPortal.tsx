@@ -37,12 +37,24 @@ export default function AdminPortal({
   const [b1Text, setB1Text] = useState('');
   const [b1TextColor, setB1TextColor] = useState('#ffffff');
   const [b1TextSize, setB1TextSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'>('2xl');
+  const [b1Duration, setB1Duration] = useState<number>(5);
+  const [b1TextTag, setB1TextTag] = useState<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'>('h2');
+  const [b1Alignment, setB1Alignment] = useState<'left' | 'center' | 'right'>('left');
+  const [b1BgColor, setB1BgColor] = useState('#1c1917');
+  const [b1MarqueeEnabled, setB1MarqueeEnabled] = useState<boolean>(false);
+  const [b1MarqueeDirection, setB1MarqueeDirection] = useState<'ltr' | 'rtl'>('rtl');
 
   const [b2Type, setB2Type] = useState<'None' | 'Image' | 'Video' | 'Text'>('None');
   const [b2Urls, setB2Urls] = useState<string[]>([]);
   const [b2Text, setB2Text] = useState('');
   const [b2TextColor, setB2TextColor] = useState('#ffffff');
   const [b2TextSize, setB2TextSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'>('3xl');
+  const [b2Duration, setB2Duration] = useState<number>(5);
+  const [b2TextTag, setB2TextTag] = useState<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'>('h3');
+  const [b2Alignment, setB2Alignment] = useState<'left' | 'center' | 'right'>('left');
+  const [b2BgColor, setB2BgColor] = useState('#141211');
+  const [b2MarqueeEnabled, setB2MarqueeEnabled] = useState<boolean>(false);
+  const [b2MarqueeDirection, setB2MarqueeDirection] = useState<'ltr' | 'rtl'>('rtl');
 
   // Draft URL inputs for slide carousels
   const [b1NewInputUrl, setB1NewInputUrl] = useState('');
@@ -64,12 +76,24 @@ export default function AdminPortal({
       setB1Text(settings.banner1?.text || '');
       setB1TextColor(settings.banner1?.textColor || '#ffffff');
       setB1TextSize(settings.banner1?.textSize || '2xl');
+      setB1Duration(settings.banner1?.duration || 5);
+      setB1TextTag(settings.banner1?.textTag || 'h2');
+      setB1Alignment(settings.banner1?.alignment || 'left');
+      setB1BgColor(settings.banner1?.bgColor || '#1c1917');
+      setB1MarqueeEnabled(settings.banner1?.marqueeEnabled || false);
+      setB1MarqueeDirection(settings.banner1?.marqueeDirection || 'rtl');
 
       setB2Type(settings.banner2?.type || 'None');
       setB2Urls(settings.banner2?.urls || []);
       setB2Text(settings.banner2?.text || '');
       setB2TextColor(settings.banner2?.textColor || '#ffffff');
       setB2TextSize(settings.banner2?.textSize || '3xl');
+      setB2Duration(settings.banner2?.duration || 5);
+      setB2TextTag(settings.banner2?.textTag || 'h3');
+      setB2Alignment(settings.banner2?.alignment || 'left');
+      setB2BgColor(settings.banner2?.bgColor || '#141211');
+      setB2MarqueeEnabled(settings.banner2?.marqueeEnabled || false);
+      setB2MarqueeDirection(settings.banner2?.marqueeDirection || 'rtl');
     }
   }, [settings]);
 
@@ -110,6 +134,12 @@ export default function AdminPortal({
           text: b1Text,
           textColor: b1TextColor,
           textSize: b1TextSize,
+          duration: Number(b1Duration) || 5,
+          textTag: b1TextTag,
+          alignment: b1Alignment,
+          bgColor: b1BgColor,
+          marqueeEnabled: b1MarqueeEnabled,
+          marqueeDirection: b1MarqueeDirection,
         },
         banner2: {
           type: b2Type,
@@ -117,6 +147,12 @@ export default function AdminPortal({
           text: b2Text,
           textColor: b2TextColor,
           textSize: b2TextSize,
+          duration: Number(b2Duration) || 5,
+          textTag: b2TextTag,
+          alignment: b2Alignment,
+          bgColor: b2BgColor,
+          marqueeEnabled: b2MarqueeEnabled,
+          marqueeDirection: b2MarqueeDirection,
         },
       });
       setSaveSuccess(true);
@@ -901,7 +937,7 @@ export default function AdminPortal({
                           </div>
 
                           <div>
-                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text size</span>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text size preset</span>
                             <select
                               value={b1TextSize}
                               onChange={(e) => setB1TextSize(e.target.value as any)}
@@ -911,6 +947,101 @@ export default function AdminPortal({
                                 <option key={sz} value={sz}>{sz.toUpperCase()}</option>
                               ))}
                             </select>
+                          </div>
+
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Heading Element</span>
+                            <select
+                              value={b1TextTag}
+                              onChange={(e) => setB1TextTag(e.target.value as any)}
+                              className="w-full text-xs p-1 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                            >
+                              {['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((tag) => (
+                                <option key={tag} value={tag}>{tag.toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Alignment</span>
+                            <select
+                              value={b1Alignment}
+                              onChange={(e) => setB1Alignment(e.target.value as any)}
+                              className="w-full text-xs p-1 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                            >
+                              <option value="left">Left</option>
+                              <option value="center">Center</option>
+                              <option value="right">Right</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Explicit block for Background Color if Banner is Text Only */}
+                      {b1Type === 'Text' && (
+                        <div className="bg-[#FAF9F5] border border-[var(--theme-border)] p-4 animate-fadeIn">
+                          <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text Card Background Color</span>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="color"
+                              value={b1BgColor}
+                              onChange={(e) => setB1BgColor(e.target.value)}
+                              className="w-10 h-7 border border-[#e4e1db] cursor-pointer p-0 bg-transparent rounded-none"
+                            />
+                            <span className="text-xs font-mono font-bold text-stone-600 uppercase">{b1BgColor}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Marquee Options if Banner is Text Only */}
+                      {b1Type === 'Text' && (
+                        <div className="bg-[#FAF9F5] border border-[var(--theme-border)] p-4 animate-fadeIn space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-stone-700 tracking-wide block">Text Marquee Effect</span>
+                              <span className="text-[9px] text-stone-500 font-medium">Auto-scroll text at a smooth 25s speed</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                              <input 
+                                type="checkbox" 
+                                checked={b1MarqueeEnabled} 
+                                onChange={(e) => setB1MarqueeEnabled(e.target.checked)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-9 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--theme-accent)]"></div>
+                            </label>
+                          </div>
+
+                          {b1MarqueeEnabled && (
+                            <div className="animate-fadeIn">
+                              <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Scroll Direction</span>
+                              <select
+                                value={b1MarqueeDirection}
+                                onChange={(e) => setB1MarqueeDirection(e.target.value as 'ltr' | 'rtl')}
+                                className="w-full text-xs p-1.5 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                              >
+                                <option value="rtl">Right to Left (RTL)</option>
+                                <option value="ltr">Left to Right (LTR)</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Dynamic slideshow timer settings */}
+                      {(b1Type === 'Image' || b1Type === 'Video') && (
+                        <div className="bg-stone-50 border border-[var(--theme-border)] p-4 animate-fadeIn">
+                          <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Slide Rotation Duration (Seconds)</span>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="number"
+                              min="1"
+                              max="120"
+                              value={b1Duration}
+                              onChange={(e) => setB1Duration(Math.max(1, parseInt(e.target.value) || 5))}
+                              className="w-20 px-2 py-1 bg-white border border-[var(--theme-border)] text-xs font-semibold text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-accent)] rounded-none"
+                            />
+                            <span className="text-[11px] text-stone-500 font-medium">Interval in seconds between slides rotation</span>
                           </div>
                         </div>
                       )}
@@ -1073,7 +1204,7 @@ export default function AdminPortal({
                           </div>
 
                           <div>
-                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text size</span>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text size preset</span>
                             <select
                               value={b2TextSize}
                               onChange={(e) => setB2TextSize(e.target.value as any)}
@@ -1083,6 +1214,101 @@ export default function AdminPortal({
                                 <option key={sz} value={sz}>{sz.toUpperCase()}</option>
                               ))}
                             </select>
+                          </div>
+
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Heading Element</span>
+                            <select
+                              value={b2TextTag}
+                              onChange={(e) => setB2TextTag(e.target.value as any)}
+                              className="w-full text-xs p-1 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                            >
+                              {['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((tag) => (
+                                <option key={tag} value={tag}>{tag.toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Alignment</span>
+                            <select
+                              value={b2Alignment}
+                              onChange={(e) => setB2Alignment(e.target.value as any)}
+                              className="w-full text-xs p-1 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                            >
+                              <option value="left">Left</option>
+                              <option value="center">Center</option>
+                              <option value="right">Right</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Explicit block for Background Color if Banner is Text Only */}
+                      {b2Type === 'Text' && (
+                        <div className="bg-[#FAF9F5] border border-[var(--theme-border)] p-4 animate-fadeIn">
+                          <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Text Card Background Color</span>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="color"
+                              value={b2BgColor}
+                              onChange={(e) => setB2BgColor(e.target.value)}
+                              className="w-10 h-7 border border-[#e4e1db] cursor-pointer p-0 bg-transparent rounded-none"
+                            />
+                            <span className="text-xs font-mono font-bold text-stone-600 uppercase">{b2BgColor}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Marquee Options if Banner is Text Only */}
+                      {b2Type === 'Text' && (
+                        <div className="bg-[#FAF9F5] border border-[var(--theme-border)] p-4 animate-fadeIn space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-stone-700 tracking-wide block">Text Marquee Effect</span>
+                              <span className="text-[9px] text-stone-500 font-medium">Auto-scroll text at a smooth 25s speed</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                              <input 
+                                type="checkbox" 
+                                checked={b2MarqueeEnabled} 
+                                onChange={(e) => setB2MarqueeEnabled(e.target.checked)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-9 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--theme-accent)]"></div>
+                            </label>
+                          </div>
+
+                          {b2MarqueeEnabled && (
+                            <div className="animate-fadeIn">
+                              <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Scroll Direction</span>
+                              <select
+                                value={b2MarqueeDirection}
+                                onChange={(e) => setB2MarqueeDirection(e.target.value as 'ltr' | 'rtl')}
+                                className="w-full text-xs p-1.5 border border-stone-300 text-stone-700 focus:outline-none focus:border-[var(--theme-accent)] rounded-none bg-white font-semibold cursor-pointer"
+                              >
+                                <option value="rtl">Right to Left (RTL)</option>
+                                <option value="ltr">Left to Right (LTR)</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Dynamic slideshow timer settings */}
+                      {(b2Type === 'Image' || b2Type === 'Video') && (
+                        <div className="bg-stone-50 border border-[var(--theme-border)] p-4 animate-fadeIn">
+                          <span className="text-[9px] font-bold uppercase text-stone-500 tracking-wide block mb-1">Slide Rotation Duration (Seconds)</span>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="number"
+                              min="1"
+                              max="120"
+                              value={b2Duration}
+                              onChange={(e) => setB2Duration(Math.max(1, parseInt(e.target.value) || 5))}
+                              className="w-20 px-2 py-1 bg-white border border-[var(--theme-border)] text-xs font-semibold text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-accent)] rounded-none"
+                            />
+                            <span className="text-[11px] text-stone-500 font-medium">Interval in seconds between slides rotation</span>
                           </div>
                         </div>
                       )}

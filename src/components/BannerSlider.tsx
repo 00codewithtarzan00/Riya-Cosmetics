@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { BannerConfig } from '../firebaseService';
 
@@ -9,6 +9,8 @@ interface BannerSliderProps {
 
 export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number>(0);
+  const [touchEndX, setTouchEndX] = useState<number>(0);
 
   // Auto-slide effect for carousels with multiple items
   useEffect(() => {
@@ -20,12 +22,13 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
     ) {
       return;
     }
+    const intervalMs = (banner.duration || 5) * 1000;
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % banner.urls.length);
-    }, 5000); // 5 seconds rotation
+    }, intervalMs);
 
     return () => clearInterval(timer);
-  }, [banner]);
+  }, [banner.urls, banner.duration, banner.type]);
 
   if (banner.type === 'None') {
     return null;
@@ -34,16 +37,41 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
   const hasMultiple = (banner.type === 'Image' || banner.type === 'Video') && banner.urls && banner.urls.length > 1;
   const currentUrl = (banner.urls && banner.urls.length > 0) ? banner.urls[activeIndex] : '';
 
-  const handlePrev = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!banner.urls || banner.urls.length === 0) return;
     setActiveIndex((prev) => (prev - 1 + banner.urls.length) % banner.urls.length);
   };
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!banner.urls || banner.urls.length === 0) return;
     setActiveIndex((prev) => (prev + 1) % banner.urls.length);
+  };
+
+  // Touch gestural sweep control managers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!hasMultiple) return;
+    setTouchStartX(e.targetTouches[0].clientX);
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!hasMultiple) return;
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!hasMultiple) return;
+    const threshold = 50; // minimum touch offset in pixels
+    const diff = touchStartX - touchEndX;
+    if (diff > threshold) {
+      // Swiped finger leftwards -> Next photo
+      handleNext();
+    } else if (diff < -threshold) {
+      // Swiped finger rightwards -> Previous photo
+      handlePrev();
+    }
   };
 
   // Map database sizes (xs to 3xl) to responsive Tailwind text classes
@@ -58,11 +86,100 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
   };
 
   const textClass = sizeClasses[banner.textSize] || sizeClasses['2xl'];
+  const textTag = banner.textTag || 'h3';
+  const alignClass = 
+    banner.alignment === 'center' 
+      ? 'text-center justify-center items-center' 
+      : banner.alignment === 'right' 
+        ? 'text-right justify-end items-end' 
+        : 'text-left justify-start items-start';
+
+  if (banner.type === 'Text') {
+    const isMarquee = !!banner.marqueeEnabled;
+    const direction = banner.marqueeDirection || 'rtl';
+
+    const flexAlignClass = 
+      banner.alignment === 'center' 
+        ? 'justify-center animate-fadeIn' 
+        : banner.alignment === 'right' 
+          ? 'justify-end animate-fadeIn' 
+          : 'justify-start animate-fadeIn';
+    
+    const textAlignClass = 
+      banner.alignment === 'center' 
+        ? 'text-center' 
+        : banner.alignment === 'right' 
+          ? 'text-right' 
+          : 'text-left';
+
+    return (
+      <div 
+        id={`home-banner-text-${title.toLowerCase().replace(' ', '-')}`}
+        className={`w-full py-1.5 sm:py-2.5 flex ${isMarquee ? 'w-full overflow-hidden' : flexAlignClass} bg-transparent select-none`}
+      >
+        {isMarquee && (
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes marquee-rtl-25 {
+              0% { transform: translate3d(0, 0, 0); }
+              100% { transform: translate3d(-20%, 0, 0); }
+            }
+            @keyframes marquee-ltr-25 {
+              0% { transform: translate3d(-20%, 0, 0); }
+              100% { transform: translate3d(0, 0, 0); }
+            }
+          `}} />
+        )}
+        <div 
+          className={isMarquee
+            ? "relative w-full overflow-hidden border border-[var(--theme-border)] shadow-2xs py-3 sm:py-4 flex items-center"
+            : `px-6 py-4 sm:px-10 sm:py-6 border border-[var(--theme-border)] shadow-xs w-auto max-w-full ${textAlignClass}`}
+          style={{ backgroundColor: banner.bgColor || 'rgba(250, 249, 245, 0.95)' }}
+        >
+          {isMarquee ? (
+            <div 
+              className="flex items-center gap-16 whitespace-nowrap"
+              style={{
+                animation: `marquee-${direction}-25 25s linear infinite`,
+                width: 'max-content',
+                display: 'flex',
+              }}
+            >
+              {[1, 2, 3, 4, 5].map((idx) => (
+                <div key={idx} className="flex items-center gap-16 select-none shrink-0">
+                  {React.createElement(
+                    textTag,
+                    {
+                      className: `${textClass} font-sans leading-relaxed tracking-[0.2em] uppercase font-bold`,
+                      style: { color: banner.textColor || 'var(--theme-text-primary)' }
+                    },
+                    banner.text
+                  )}
+                  <span style={{ color: banner.textColor || 'var(--theme-text-primary)' }} className="text-sm font-bold opacity-40">✦</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            React.createElement(
+              textTag,
+              {
+                className: `${textClass} font-sans leading-relaxed tracking-wide font-semibold`,
+                style: { color: banner.textColor || 'var(--theme-text-primary)' }
+              },
+              banner.text
+            )
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
       id={`home-banner-slider-${title.toLowerCase().replace(' ', '-')}`}
-      className="relative w-full overflow-hidden min-h-[130px] sm:min-h-[180px] md:min-h-[240px] h-[130px] sm:h-[180px] md:h-[260px] lg:h-[340px] bg-neutral-900 flex items-center justify-center group select-none shadow-[inset_0_-2px_8px_rgba(0,0,0,0.1)]"
+      className="relative w-full overflow-hidden min-h-[130px] sm:min-h-[180px] md:min-h-[240px] h-[130px] sm:h-[180px] md:h-[260px] lg:h-[340px] bg-neutral-900 flex items-center justify-center group select-none shadow-[inset_0_-2px_8px_rgba(0,0,0,0.1)] cursor-grab active:cursor-grabbing"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Background Visual Rendering */}
       {banner.type === 'Image' && currentUrl ? (
@@ -82,29 +199,27 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
           playsInline 
           className="w-full h-full object-cover transition-opacity duration-500 ease-in-out"
         />
-      ) : (
-        /* Text only Banner background: Luxury cosmetics gradient */
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#1c1917] via-[#2d2521] to-[#141211] w-full h-full" />
-      )}
+      ) : null}
 
       {/* Semi-transparent black gradient overlay for crisp high-contrast text rendering */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
 
-      {/* Decorative label indicating active premium zone */}
-      <div className="absolute top-4 left-6 z-10 bg-white/10 backdrop-blur-md px-3 py-1 text-[8px] sm:text-[9px] font-mono tracking-widest text-[#e4e1db] uppercase border border-white/10 rounded-xs select-none">
-        RIYA {title}
-      </div>
-
-      {/* Absolute text overlay at the bottom */}
+      {/* Absolute text overlay with custom alignment */}
       {banner.text && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 z-10 pointer-events-none text-center sm:text-left">
-          <div className="max-w-7xl mx-auto flex flex-col justify-end h-full">
-            <h3 
-              className={`${textClass} transition-all duration-300 transform translate-y-0 text-shadow-sm font-sans`}
-              style={{ color: banner.textColor }}
-            >
-              {banner.text}
-            </h3>
+        <div className={`absolute inset-0 p-4 sm:p-6 md:p-8 lg:p-12 z-10 pointer-events-none flex flex-col ${alignClass}`}>
+          <div className="max-w-7xl w-full flex flex-col justify-end h-full">
+            <div className={`w-full flex ${banner.alignment === 'center' ? 'justify-center' : banner.alignment === 'right' ? 'justify-end' : 'justify-start'}`}>
+              <div className="max-w-xl md:max-w-2xl lg:max-w-3xl">
+                {React.createElement(
+                  textTag,
+                  {
+                    className: `${textClass} transition-all duration-300 transform translate-y-0 text-shadow-md font-sans font-semibold tracking-wide leading-tight`,
+                    style: { color: banner.textColor || '#ffffff' }
+                  },
+                  banner.text
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -114,17 +229,17 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
         <>
           <button 
             onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 bg-black/40 hover:bg-black/80 text-white rounded-none border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 cursor-pointer text-xs"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/80 text-white rounded-none border border-white/10 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 z-20 cursor-pointer text-xs hidden md:block"
             aria-label="Previous slide"
           >
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button 
             onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 bg-black/40 hover:bg-black/80 text-white rounded-none border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 cursor-pointer text-xs"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/80 text-white rounded-none border border-white/10 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 z-20 cursor-pointer text-xs hidden md:block"
             aria-label="Next slide"
           >
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronRight className="w-5 h-5" />
           </button>
 
           {/* Dots Indicator dashboard */}

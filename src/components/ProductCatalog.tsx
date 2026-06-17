@@ -152,15 +152,15 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
   }, [sentinelRef.current, visibleCount, filteredAndSortedProducts.length]);
 
   return (
-    <div id="catalog-section" className="pt-28 pb-20 bg-[var(--theme-bg)] min-h-screen">
+    <div id="catalog-section" className="pt-22 pb-6 bg-[var(--theme-bg)] min-h-screen">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12">
         
         {/* Searching, Sorting, and Category Controls Group */}
-        <div className="mb-6">
+        <div className="mb-3">
           {/* Top Control Bar: Search and Sort */}
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 border border-[var(--theme-border)]">
-            {/* Search Input */}
-            <div className="relative w-full md:max-w-md">
+          <div className="flex flex-row gap-2.5 items-center bg-transparent p-0">
+            {/* Search Input (Takes maximum space) */}
+            <div className="relative flex-grow">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
               <input
                 id="catalog-search"
@@ -168,26 +168,33 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search catalog... (e.g. lipstick, hair oil, ornaments)"
-                className="w-full pl-10 pr-4 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] placeholder-stone-400 rounded-none focus:outline-none focus:border-[var(--theme-accent)] transition-all"
+                className="w-full pl-10 pr-10 py-2 sm:py-2.5 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] placeholder-stone-400 rounded-none focus:outline-none focus:border-[var(--theme-accent)] transition-all"
               />
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-[var(--theme-text-primary)]"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-[var(--theme-text-primary)] p-1 z-10"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-2.5 w-full md:w-auto self-stretch select-none">
-              <ArrowUpDown className="w-4 h-4 text-stone-400 shrink-0" />
+            {/* Elegant Small Sort Dropdown Button (Overlapping Hidden Select) */}
+            <div className="relative shrink-0 select-none">
+              <button 
+                type="button"
+                className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white border border-[var(--theme-border)] hover:border-[var(--theme-accent)] transition-all text-stone-600 hover:text-[var(--theme-text-primary)]"
+                aria-label="Sort options"
+              >
+                <ArrowUpDown className="w-4.5 h-4.5" />
+              </button>
               <select
                 id="catalog-sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full md:w-52 px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] transition-all cursor-pointer"
+                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                title="Sort items"
               >
                 <option value="default">Newest First</option>
                 <option value="price-low-high">Price: Low to High</option>
@@ -200,19 +207,23 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
 
         {/* Premium Banner 1 Slider System (Below Search Bar) */}
         {settings?.banner1 && settings.banner1.type !== 'None' && (
-          <div id="catalog-home-banner-1" className="w-full bg-stone-100 border border-[var(--theme-border)] mb-8 overflow-hidden shadow-2xs">
+          <div 
+            id="catalog-home-banner-1" 
+            className={settings.banner1.type === 'Text' 
+              ? "mb-3 select-none" 
+              : "w-full bg-stone-100 border border-[var(--theme-border)] mb-3 overflow-hidden shadow-2xs"}
+          >
             <BannerSlider banner={settings.banner1} title="Banner 1" />
           </div>
         )}
 
         {/* Categorization Tabs */}
         <div 
-          className={`sticky top-[80px] z-30 py-3.5 border-b border-[var(--theme-border)] flex items-center gap-2 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all ${
-            settings?.banner2 && settings.banner2.type !== 'None' ? 'mb-8' : 'mb-12'
+          className={`sticky top-[80px] z-30 py-1.5 border-b border-[var(--theme-border)] flex items-center gap-2 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all ${
+            settings?.banner2 && settings.banner2.type !== 'None' ? 'mb-3' : 'mb-4'
           }`}
           style={{ backgroundColor: 'rgba(250, 249, 245, 0.95)' }}
         >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--theme-accent)] mr-2 shrink-0 hidden md:block" />
           <div className="flex items-center gap-2 overflow-visible md:flex-wrap pb-0.5 md:pb-0">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat;
@@ -236,7 +247,12 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
 
         {/* Premium Banner 2 Slider System (Below Category Bar) */}
         {settings?.banner2 && settings.banner2.type !== 'None' && (
-          <div id="catalog-home-banner-2" className="w-full bg-stone-100 border border-[var(--theme-border)] mb-12 overflow-hidden shadow-2xs">
+          <div 
+            id="catalog-home-banner-2" 
+            className={settings.banner2.type === 'Text' 
+              ? "mb-4 select-none" 
+              : "w-full bg-stone-100 border border-[var(--theme-border)] mb-4 overflow-hidden shadow-2xs"}
+          >
             <BannerSlider banner={settings.banner2} title="Banner 2" />
           </div>
         )}
@@ -313,7 +329,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
 
             {/* Ended message */}
             {visibleCount >= filteredAndSortedProducts.length && filteredAndSortedProducts.length > 6 && (
-              <div className="py-12 text-center border-t border-[var(--theme-border)] mt-12 animate-fade-in">
+              <div className="py-6 text-center border-t border-[var(--theme-border)] mt-6 animate-fade-in">
                 <p className="text-[10px] uppercase font-mono tracking-[0.3em] text-[var(--theme-text-muted)] font-medium">
                   ✦ You have viewed all curated formulations ✦
                 </p>
@@ -321,7 +337,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
             )}
           </div>
         ) : (
-          <div className="py-24 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto">
+          <div className="py-12 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto">
             <Sparkles className="w-10 h-10 text-stone-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-[var(--theme-text-primary)] mb-2">No items match your criteria</h3>
             <p className="text-xs text-[var(--theme-text-secondary)] px-6 font-medium">
