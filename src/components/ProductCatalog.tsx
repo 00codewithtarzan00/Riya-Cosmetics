@@ -209,9 +209,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
         {settings?.banner1 && settings.banner1.type !== 'None' && (
           <div 
             id="catalog-home-banner-1" 
-            className={settings.banner1.type === 'Text' 
-              ? "mb-3 select-none" 
-              : "w-full bg-stone-100 border border-[var(--theme-border)] mb-3 overflow-hidden shadow-2xs"}
+            className="w-full mb-3 overflow-hidden"
           >
             <BannerSlider banner={settings.banner1} title="Banner 1" />
           </div>
@@ -249,9 +247,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
         {settings?.banner2 && settings.banner2.type !== 'None' && (
           <div 
             id="catalog-home-banner-2" 
-            className={settings.banner2.type === 'Text' 
-              ? "mb-4 select-none" 
-              : "w-full bg-stone-100 border border-[var(--theme-border)] mb-4 overflow-hidden shadow-2xs"}
+            className="w-full mb-4 overflow-hidden"
           >
             <BannerSlider banner={settings.banner2} title="Banner 2" />
           </div>
@@ -360,37 +356,40 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
         {selectedProduct && (
           <div 
             id="product-details-modal"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-md animate-fade-in"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+            onClick={() => setSelectedProduct(null)}
           >
             <div 
-              className="relative w-full max-w-2xl bg-white border border-[var(--theme-border)] text-left outline-none overflow-hidden max-h-[90vh] flex flex-col md:flex-row shadow-2xl rounded-none"
+              className="relative w-full max-w-4xl bg-white border border-[var(--theme-border)] text-left outline-none overflow-hidden max-h-[95vh] md:max-h-[90vh] flex flex-col md:flex-row shadow-2xl rounded-none"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
               <button 
                 id="close-details-modal"
                 onClick={() => setSelectedProduct(null)}
-                className="absolute top-4 right-4 z-10 p-2 bg-[var(--theme-bg)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+                className="absolute top-4 right-4 z-30 p-2 bg-white/90 text-stone-600 hover:text-stone-900 transition-colors cursor-pointer rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-stone-50"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Modal Left Column: Static & Smaller Image Box */}
-              <div className="w-full md:w-64 h-64 md:h-auto shrink-0 bg-[var(--theme-bg)] relative overflow-hidden flex items-center justify-center p-4">
+              {/* Modal Left Column: Large Premium Image Viewer */}
+              <div className="w-full md:w-1/2 h-[300px] sm:h-[400px] md:h-[520px] shrink-0 bg-white relative overflow-hidden flex items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-r border-[var(--theme-border)]/65">
+                <div className="absolute inset-0 bg-[radial-gradient(#f1f0ea_1px,transparent_1px)] [background-size:16px_16px] opacity-50 pointer-events-none" />
                 <img 
                   src={selectedProduct.image} 
                   alt={selectedProduct.name} 
-                  className="w-full h-full object-contain object-center"
+                  className="w-full h-full object-contain object-center transition-all duration-700 ease-out hover:scale-[1.05] relative z-10"
+                  referrerPolicy="no-referrer"
                 />
-                <div className="absolute top-4 left-4 bg-[var(--theme-accent)] text-white px-3 py-1 text-[10px] tracking-widest uppercase font-bold">
+                <div className="absolute top-4 left-4 bg-[var(--theme-accent)] text-white px-3 py-1 text-[9px] tracking-widest uppercase font-extrabold z-20 shadow-xs">
                   {selectedProduct.category}
                 </div>
               </div>
 
               {/* Modal Right Column: Deep Product Details */}
-              <div className="w-full md:flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto flex flex-col justify-between max-h-[50vh] md:max-h-full">
+              <div className="w-full md:w-1/2 p-5 sm:p-6 md:p-8 overflow-y-auto flex flex-col justify-between max-h-[45vh] md:max-h-[520px]">
                 <div>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-[var(--theme-text-primary)] tracking-wide leading-tight mb-2">
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-[var(--theme-text-primary)] tracking-wide leading-tight mb-2">
                     {selectedProduct.name}
                   </h3>
                   

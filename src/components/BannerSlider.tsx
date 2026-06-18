@@ -11,6 +11,14 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number>(0);
   const [touchEndX, setTouchEndX] = useState<number>(0);
+  const [naturalAspect, setNaturalAspect] = useState<number | null>(null);
+
+  const firstUrl = (banner.urls && banner.urls.length > 0) ? banner.urls[0] : '';
+
+  // Reset the responsive fluid aspect ratio state whenever the first image/asset URL changes
+  useEffect(() => {
+    setNaturalAspect(null);
+  }, [firstUrl, banner.type]);
 
   // Auto-slide effect for carousels with multiple items
   useEffect(() => {
@@ -71,6 +79,21 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
     } else if (diff < -threshold) {
       // Swiped finger rightwards -> Previous photo
       handlePrev();
+    }
+  };
+
+  // Dynamically calculate aspect ratios from loaded HTML Image or Video elements
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth && naturalHeight && !naturalAspect) {
+      setNaturalAspect(naturalWidth / naturalHeight);
+    }
+  };
+
+  const handleVideoLoad = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const { videoWidth, videoHeight } = e.currentTarget;
+    if (videoWidth && videoHeight && !naturalAspect) {
+      setNaturalAspect(videoWidth / videoHeight);
     }
   };
 
@@ -176,33 +199,55 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
   return (
     <div 
       id={`home-banner-slider-${title.toLowerCase().replace(' ', '-')}`}
-      className="relative w-full overflow-hidden min-h-[130px] sm:min-h-[180px] md:min-h-[240px] h-[130px] sm:h-[180px] md:h-[260px] lg:h-[340px] bg-neutral-900 flex items-center justify-center group select-none shadow-[inset_0_-2px_8px_rgba(0,0,0,0.1)] cursor-grab active:cursor-grabbing"
+      className="relative w-full overflow-hidden bg-white group select-none shadow-xs border border-[var(--theme-border)] cursor-grab active:cursor-grabbing"
+      style={{ 
+        aspectRatio: naturalAspect ? `${naturalAspect}` : '21/9'
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       {/* Background Visual Rendering */}
-      {banner.type === 'Image' && currentUrl ? (
-        <img 
-          src={currentUrl} 
-          alt={`${title} Slide ${activeIndex + 1}`} 
-          className="w-full h-full object-cover object-center transition-all duration-700 ease-in-out scale-100 hover:scale-102"
-          referrerPolicy="no-referrer"
-        />
-      ) : banner.type === 'Video' && currentUrl ? (
-        <video 
-          key={currentUrl} // Key forces video source change recreate and play
-          src={currentUrl}
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          className="w-full h-full object-cover transition-opacity duration-500 ease-in-out"
-        />
-      ) : null}
+      {banner.type === 'Image' && banner.urls && banner.urls.length > 0 && (
+        <div className="absolute inset-0 w-full h-full overflow-hidden bg-white">
+          {banner.urls.map((url, idx) => (
+            <img 
+              key={url}
+              src={url} 
+              alt={`${title} Slide ${idx + 1}`} 
+              onLoad={idx === 0 ? handleImageLoad : undefined}
+              className={`absolute inset-0 w-full h-full object-fill transition-all duration-700 ease-in-out hover:scale-[1.01] ${
+                idx === activeIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+              }`}
+              referrerPolicy="no-referrer"
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Semi-transparent black gradient overlay for crisp high-contrast text rendering */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
+      {banner.type === 'Video' && banner.urls && banner.urls.length > 0 && (
+        <div className="absolute inset-0 w-full h-full overflow-hidden bg-white">
+          {banner.urls.map((url, idx) => (
+            <video 
+              key={url}
+              src={url}
+              onLoadedMetadata={idx === 0 ? handleVideoLoad : undefined}
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className={`absolute inset-0 w-full h-full object-fill transition-all duration-700 ease-in-out ${
+                idx === activeIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Semi-transparent black gradient overlay for crisp high-contrast text rendering ONLY if banner contains text */}
+      {banner.text && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none z-5" />
+      )}
 
       {/* Absolute text overlay with custom alignment */}
       {banner.text && (
@@ -252,7 +297,7 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
                   setActiveIndex(idx);
                 }}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  activeIndex === idx ? 'bg-[var(--theme-accent)] w-4' : 'bg-white/40 hover:bg-white/70'
+                  activeIndex === idx ? 'bg-[var(--theme-accent)] w-4' : 'bg-stone-300 hover:bg-stone-500'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
