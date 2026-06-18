@@ -13,6 +13,11 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [settings, setSettings] = useState<SettingsConfig>(DEFAULT_SETTINGS);
 
+  // Scroll to the top of the page whenever the view changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
+
   // Set up real-time connection and active synchronization subscription
   useEffect(() => {
     const unsubscribe = subscribeToProducts((prodList) => {

@@ -98,8 +98,9 @@ export default function AdminPortal({
   }, [settings]);
 
   /**
-   * Automatically compresses an image file to a very small, high-quality JPEG base64 string
-   * on the client-side, enabling near-instant loads without visual degradation.
+   * Automatically compresses any uploaded image to the ultra-modern high-efficiency AVIF format
+   * (or WebP/JPEG as adaptive fallbacks if AVIF encoding is not yet supported in the current browser),
+   * providing massive savings in file size with pristine, uncompromised visual quality.
    */
   const compressImageFile = (file: File, maxDimension: number = 800, quality: number = 0.70): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -131,13 +132,24 @@ export default function AdminPortal({
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           if (ctx) {
-            // Fill white background (useful if dynamic PNG contains transparency)
+            // Fill white background to support alpha channel conversions cleanly
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, width, height);
             ctx.drawImage(img, 0, 0, width, height);
             
-            // 0.70 quality provides massive compression (typically ~80%+ reduction in byte size) with pristine visual aesthetics
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            // Step 1: Attempt ultra-optimized AVIF compression
+            let compressedDataUrl = canvas.toDataURL('image/avif', quality);
+            
+            // Step 2: Validate if browser natively supports AVIF output.
+            // If unsupported, browsers default back to png or jpeg. We detect this and use WebP / JPEG as safe high-perf fallbacks.
+            if (!compressedDataUrl.startsWith('data:image/avif')) {
+              compressedDataUrl = canvas.toDataURL('image/webp', quality);
+              
+              if (!compressedDataUrl.startsWith('data:image/webp')) {
+                // Standard universal compression backup
+                compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+              }
+            }
             resolve(compressedDataUrl);
           } else {
             resolve(result);
