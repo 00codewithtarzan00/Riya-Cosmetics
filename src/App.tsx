@@ -35,6 +35,11 @@ export default function App() {
     };
   }, []);
 
+  // Scroll to the absolute top of the page on view changes (entering Admin Portal or returning to Catalog)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentView]);
+
   // CRUD handlers calling Firebase Firestore
   const handleAddProduct = async (newProduct: Omit<Product, 'id'>) => {
     await dbAddProduct(newProduct);
