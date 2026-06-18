@@ -178,11 +178,8 @@ export interface SettingsConfig {
 
 export const DEFAULT_SETTINGS: SettingsConfig = {
   banner1: {
-    type: 'Image',
-    urls: [
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=1200',
-      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200'
-    ],
+    type: 'None',
+    urls: [],
     text: 'FLAWLESS SKINCARE COUTURE',
     textColor: '#ffffff',
     textSize: '2xl',
@@ -194,11 +191,8 @@ export const DEFAULT_SETTINGS: SettingsConfig = {
     marqueeDirection: 'rtl'
   },
   banner2: {
-    type: 'Image',
-    urls: [
-      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=1200',
-      'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=1200'
-    ],
+    type: 'None',
+    urls: [],
     text: 'LUXURY MAKEUP SELECTION',
     textColor: '#ffffff',
     textSize: '3xl',
@@ -225,10 +219,35 @@ export function subscribeToBanners(
     (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
+        const defaultRemovedUrls = [
+          'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=1200',
+          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200',
+          'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=1200',
+          'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=1200'
+        ];
+
+        let b1RawUrls: string[] = Array.isArray(data.banner1?.urls) ? data.banner1.urls : [];
+        let b2RawUrls: string[] = Array.isArray(data.banner2?.urls) ? data.banner2.urls : [];
+
+        // Dynamic filtering of old default images
+        const b1Urls = b1RawUrls.filter(url => !defaultRemovedUrls.includes(url));
+        const b2Urls = b2RawUrls.filter(url => !defaultRemovedUrls.includes(url));
+
+        let b1Type = data.banner1?.type || 'None';
+        let b2Type = data.banner2?.type || 'None';
+
+        // Fallback type if no non-default images are left in lists
+        if (b1Type === 'Image' && b1Urls.length === 0) {
+          b1Type = 'None';
+        }
+        if (b2Type === 'Image' && b2Urls.length === 0) {
+          b2Type = 'None';
+        }
+
         const settings: SettingsConfig = {
           banner1: {
-            type: data.banner1?.type || 'None',
-            urls: Array.isArray(data.banner1?.urls) ? data.banner1.urls : [],
+            type: b1Type,
+            urls: b1Urls,
             text: data.banner1?.text || '',
             textColor: data.banner1?.textColor || '#ffffff',
             textSize: data.banner1?.textSize || '2xl',
@@ -240,8 +259,8 @@ export function subscribeToBanners(
             marqueeDirection: data.banner1?.marqueeDirection || 'rtl',
           },
           banner2: {
-            type: data.banner2?.type || 'None',
-            urls: Array.isArray(data.banner2?.urls) ? data.banner2.urls : [],
+            type: b2Type,
+            urls: b2Urls,
             text: data.banner2?.text || '',
             textColor: data.banner2?.textColor || '#ffffff',
             textSize: data.banner2?.textSize || '2xl',
