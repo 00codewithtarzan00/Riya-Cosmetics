@@ -138,6 +138,19 @@ export default function AdminPortal({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  const getImageAspectRatio = (dataUrl: string): Promise<number> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve(img.width / img.height);
+      };
+      img.onerror = () => {
+        resolve(1200 / 514); // Fallback to approx 21:9 key slot ratio
+      };
+      img.src = dataUrl;
+    });
+  };
+
   interface CompressionResult {
     dataUrl: string;
     aiProfile: string;
@@ -152,7 +165,7 @@ export default function AdminPortal({
    * maps it to an AI Image Profile, dynamically optimizes the target format compression rate, and applies a content-aware
    * selective edge-sharpening pass (Unsharp Masking modulated by Sobel edge magnitude) before outputting AVIF or high-efficiency WebP.
    */
-  const compressImageFile = (file: File, maxDimension: number = 800): Promise<CompressionResult> => {
+  const compressImageFile = (file: File, maxDimension: number = 800, targetAspectRatio?: number): Promise<CompressionResult> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -256,24 +269,43 @@ export default function AdminPortal({
             console.warn('AI analysis pass bypassed:', err);
           }
 
-          // 3. Optimal target dimension scaling preserving aspect ratio
-          let targetWidth = sourceWidth;
-          let targetHeight = sourceHeight;
+          // Crop configuration if target aspect ratio is specified (for locked multi-banner consistency)
+          let cropX = 0;
+          let cropY = 0;
+          let cropWidth = sourceWidth;
+          let cropHeight = sourceHeight;
 
-          if (sourceWidth > maxDimension || sourceHeight > maxDimension) {
-            if (sourceWidth > sourceHeight) {
-              targetHeight = Math.round((sourceHeight * maxDimension) / sourceWidth);
+          if (targetAspectRatio) {
+            const currentAspectRatio = sourceWidth / sourceHeight;
+            if (currentAspectRatio > targetAspectRatio) {
+              // Crop width (sides)
+              cropWidth = Math.round(sourceHeight * targetAspectRatio);
+              cropX = Math.round((sourceWidth - cropWidth) / 2);
+            } else if (currentAspectRatio < targetAspectRatio) {
+              // Crop height (top/bottom)
+              cropHeight = Math.round(sourceWidth / targetAspectRatio);
+              cropY = Math.round((sourceHeight - cropHeight) / 2);
+            }
+          }
+
+          // 3. Optimal target dimension scaling preserving aspect ratio
+          let targetWidth = cropWidth;
+          let targetHeight = cropHeight;
+
+          if (cropWidth > maxDimension || cropHeight > maxDimension) {
+            if (cropWidth > cropHeight) {
+              targetHeight = Math.round((cropHeight * maxDimension) / cropWidth);
               targetWidth = maxDimension;
             } else {
-              targetWidth = Math.round((sourceWidth * maxDimension) / sourceHeight);
+              targetWidth = Math.round((cropWidth * maxDimension) / cropHeight);
               targetHeight = maxDimension;
             }
           }
 
           // 4. Cascading Multi-Pass Downsampling (Mipmapping) to prevent aliasing
           let currentCanvas = document.createElement('canvas');
-          currentCanvas.width = sourceWidth;
-          currentCanvas.height = sourceHeight;
+          currentCanvas.width = cropWidth;
+          currentCanvas.height = cropHeight;
           let currentCtx = currentCanvas.getContext('2d');
           
           if (!currentCtx) {
@@ -282,22 +314,29 @@ export default function AdminPortal({
           }
 
           currentCtx.fillStyle = '#ffffff';
-          currentCtx.fillRect(0, 0, sourceWidth, sourceHeight);
-          currentCtx.drawImage(img, 0, 0, sourceWidth, sourceHeight);
+          currentCtx.fillRect(0, 0, cropWidth, cropHeight);
+          currentCtx.drawImage(
+            img, 
+            cropX, cropY, cropWidth, cropHeight, 
+            0, 0, cropWidth, cropHeight
+          );
+
+          let scaledWidth = cropWidth;
+          let scaledHeight = cropHeight;
 
           // Successively half-size scale down loops
-          while (sourceWidth > 2 * targetWidth && sourceHeight > 2 * targetHeight) {
-            sourceWidth = Math.round(sourceWidth / 2);
-            sourceHeight = Math.round(sourceHeight / 2);
+          while (scaledWidth > 2 * targetWidth && scaledHeight > 2 * targetHeight) {
+            scaledWidth = Math.round(scaledWidth / 2);
+            scaledHeight = Math.round(scaledHeight / 2);
             
             const nextCanvas = document.createElement('canvas');
-            nextCanvas.width = sourceWidth;
-            nextCanvas.height = sourceHeight;
+            nextCanvas.width = scaledWidth;
+            nextCanvas.height = scaledHeight;
             const nextCtx = nextCanvas.getContext('2d');
             if (nextCtx) {
               nextCtx.fillStyle = '#ffffff';
-              nextCtx.fillRect(0, 0, sourceWidth, sourceHeight);
-              nextCtx.drawImage(currentCanvas, 0, 0, currentCanvas.width, currentCanvas.height, 0, 0, sourceWidth, sourceHeight);
+              nextCtx.fillRect(0, 0, scaledWidth, scaledHeight);
+              nextCtx.drawImage(currentCanvas, 0, 0, currentCanvas.width, currentCanvas.height, 0, 0, scaledWidth, scaledHeight);
               currentCanvas = nextCanvas;
               currentCtx = nextCtx;
             }
@@ -449,8 +488,19 @@ export default function AdminPortal({
 
     if (isImage) {
       try {
+        // Enforce the exact aspect ratio of the first image in the slider for all subsequent images
+        let targetAspectRatio: number | undefined = undefined;
+        const currentUrls = bannerNumber === 1 ? b1Urls : b2Urls;
+        if (currentUrls && currentUrls.length > 0) {
+          try {
+            targetAspectRatio = await getImageAspectRatio(currentUrls[0]);
+          } catch (err) {
+            console.warn('Could not determine first image aspect ratio:', err);
+          }
+        }
+
         // Banners are wide display elements, max-width of 1200 matches standard layouts, 0.72 quality compresses optimally.
-        const compResult = await compressImageFile(file, 1200);
+        const compResult = await compressImageFile(file, 1200, targetAspectRatio);
         const compressedBase64 = compResult.dataUrl;
         
         const origSize = file.size;

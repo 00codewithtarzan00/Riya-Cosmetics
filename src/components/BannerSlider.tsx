@@ -216,7 +216,7 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
               src={url} 
               alt={`${title} Slide ${idx + 1}`} 
               onLoad={idx === 0 ? handleImageLoad : undefined}
-              className={`absolute inset-0 w-full h-full object-fill transition-all duration-700 ease-in-out hover:scale-[1.01] ${
+              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out hover:scale-[1.01] ${
                 idx === activeIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
               }`}
               referrerPolicy="no-referrer"
@@ -236,7 +236,7 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
               loop 
               muted 
               playsInline 
-              className={`absolute inset-0 w-full h-full object-fill transition-all duration-700 ease-in-out ${
+              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${
                 idx === activeIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             />
