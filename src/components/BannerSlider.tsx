@@ -17,8 +17,12 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
 
   // Reset the responsive fluid aspect ratio state whenever the first image/asset URL changes
   useEffect(() => {
-    setNaturalAspect(null);
-  }, [firstUrl, banner.type]);
+    if (banner.aspectRatioNum) {
+      setNaturalAspect(banner.aspectRatioNum);
+    } else {
+      setNaturalAspect(null);
+    }
+  }, [firstUrl, banner.type, banner.aspectRatioNum]);
 
   // Auto-slide effect for carousels with multiple items
   useEffect(() => {
@@ -85,14 +89,14 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
   // Dynamically calculate aspect ratios from loaded HTML Image or Video elements
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { naturalWidth, naturalHeight } = e.currentTarget;
-    if (naturalWidth && naturalHeight && !naturalAspect) {
+    if (naturalWidth && naturalHeight && !banner.aspectRatioNum) {
       setNaturalAspect(naturalWidth / naturalHeight);
     }
   };
 
   const handleVideoLoad = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const { videoWidth, videoHeight } = e.currentTarget;
-    if (videoWidth && videoHeight && !naturalAspect) {
+    if (videoWidth && videoHeight && !banner.aspectRatioNum) {
       setNaturalAspect(videoWidth / videoHeight);
     }
   };
@@ -201,7 +205,7 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
       id={`home-banner-slider-${title.toLowerCase().replace(' ', '-')}`}
       className="relative w-full overflow-hidden bg-white group select-none shadow-xs border border-[var(--theme-border)] cursor-grab active:cursor-grabbing"
       style={{ 
-        aspectRatio: naturalAspect ? `${naturalAspect}` : '21/9'
+        aspectRatio: banner.aspectRatioNum ? `${banner.aspectRatioNum}` : (naturalAspect ? `${naturalAspect}` : '21/9')
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

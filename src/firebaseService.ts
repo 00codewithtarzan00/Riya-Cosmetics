@@ -169,6 +169,8 @@ export interface BannerConfig {
   bgColor?: string;
   marqueeEnabled?: boolean;
   marqueeDirection?: 'ltr' | 'rtl';
+  selectedAspectUrl?: string;
+  aspectRatioNum?: number;
 }
 
 export interface SettingsConfig {
@@ -257,6 +259,8 @@ export function subscribeToBanners(
             bgColor: data.banner1?.bgColor || '#1c1917',
             marqueeEnabled: data.banner1?.marqueeEnabled || false,
             marqueeDirection: data.banner1?.marqueeDirection || 'rtl',
+            selectedAspectUrl: data.banner1?.selectedAspectUrl || '',
+            aspectRatioNum: typeof data.banner1?.aspectRatioNum === 'number' ? data.banner1.aspectRatioNum : undefined,
           },
           banner2: {
             type: b2Type,
@@ -270,6 +274,8 @@ export function subscribeToBanners(
             bgColor: data.banner2?.bgColor || '#141211',
             marqueeEnabled: data.banner2?.marqueeEnabled || false,
             marqueeDirection: data.banner2?.marqueeDirection || 'rtl',
+            selectedAspectUrl: data.banner2?.selectedAspectUrl || '',
+            aspectRatioNum: typeof data.banner2?.aspectRatioNum === 'number' ? data.banner2.aspectRatioNum : undefined,
           }
         };
         onUpdate(settings);
@@ -304,7 +310,9 @@ export async function dbUpdateBanners(settings: SettingsConfig): Promise<void> {
         alignment: settings.banner1.alignment || 'left',
         bgColor: settings.banner1.bgColor || '#1c1917',
         marqueeEnabled: settings.banner1.marqueeEnabled || false,
-        marqueeDirection: settings.banner1.marqueeDirection || 'rtl'
+        marqueeDirection: settings.banner1.marqueeDirection || 'rtl',
+        selectedAspectUrl: settings.banner1.selectedAspectUrl || '',
+        aspectRatioNum: settings.banner1.aspectRatioNum || null
       },
       banner2: {
         type: settings.banner2.type,
@@ -317,7 +325,9 @@ export async function dbUpdateBanners(settings: SettingsConfig): Promise<void> {
         alignment: settings.banner2.alignment || 'left',
         bgColor: settings.banner2.bgColor || '#141211',
         marqueeEnabled: settings.banner2.marqueeEnabled || false,
-        marqueeDirection: settings.banner2.marqueeDirection || 'rtl'
+        marqueeDirection: settings.banner2.marqueeDirection || 'rtl',
+        selectedAspectUrl: settings.banner2.selectedAspectUrl || '',
+        aspectRatioNum: settings.banner2.aspectRatioNum || null
       }
     });
   } catch (error) {

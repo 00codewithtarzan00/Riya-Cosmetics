@@ -60,6 +60,12 @@ export default function AdminPortal({
   const [b1NewInputUrl, setB1NewInputUrl] = useState('');
   const [b2NewInputUrl, setB2NewInputUrl] = useState('');
 
+  // Selected aspect ratio image url and value states
+  const [b1SelectedAspectUrl, setB1SelectedAspectUrl] = useState<string>('');
+  const [b1AspectNum, setB1AspectNum] = useState<number | undefined>(undefined);
+  const [b2SelectedAspectUrl, setB2SelectedAspectUrl] = useState<string>('');
+  const [b2AspectNum, setB2AspectNum] = useState<number | undefined>(undefined);
+
   // Local drop triggers
   const [b1IsDragging, setB1IsDragging] = useState(false);
   const [b2IsDragging, setB2IsDragging] = useState(false);
@@ -73,6 +79,8 @@ export default function AdminPortal({
     if (settings) {
       setB1Type(settings.banner1?.type || 'None');
       setB1Urls(settings.banner1?.urls || []);
+      setB1SelectedAspectUrl(settings.banner1?.selectedAspectUrl || '');
+      setB1AspectNum(settings.banner1?.aspectRatioNum);
       setB1Text(settings.banner1?.text || '');
       setB1TextColor(settings.banner1?.textColor || '#ffffff');
       setB1TextSize(settings.banner1?.textSize || '2xl');
@@ -85,6 +93,8 @@ export default function AdminPortal({
 
       setB2Type(settings.banner2?.type || 'None');
       setB2Urls(settings.banner2?.urls || []);
+      setB2SelectedAspectUrl(settings.banner2?.selectedAspectUrl || '');
+      setB2AspectNum(settings.banner2?.aspectRatioNum);
       setB2Text(settings.banner2?.text || '');
       setB2TextColor(settings.banner2?.textColor || '#ffffff');
       setB2TextSize(settings.banner2?.textSize || '3xl');
@@ -475,6 +485,175 @@ export default function AdminPortal({
     });
   };
 
+  // Synchronized asset addition to slides that auto-ticks if it is the first image and immediately syncs to Firestore
+  const addUrlToBanner = async (bannerNumber: 1 | 2, url: string) => {
+    if (bannerNumber === 1) {
+      setB1Urls((prev) => {
+        const next = [...prev, url];
+        if (prev.length === 0) {
+          // Auto-tick and set custom aspect ratio
+          setB1SelectedAspectUrl(url);
+          getImageAspectRatio(url).then(async (aspect) => {
+            setB1AspectNum(aspect);
+            try {
+              await dbUpdateBanners({
+                banner1: {
+                  type: b1Type,
+                  urls: next,
+                  text: b1Text,
+                  textColor: b1TextColor,
+                  textSize: b1TextSize,
+                  duration: Number(b1Duration) || 5,
+                  textTag: b1TextTag,
+                  alignment: b1Alignment,
+                  bgColor: b1BgColor,
+                  marqueeEnabled: b1MarqueeEnabled,
+                  marqueeDirection: b1MarqueeDirection,
+                  selectedAspectUrl: url,
+                  aspectRatioNum: aspect,
+                },
+                banner2: {
+                  type: b2Type,
+                  urls: b2Urls,
+                  text: b2Text,
+                  textColor: b2TextColor,
+                  textSize: b2TextSize,
+                  duration: Number(b2Duration) || 5,
+                  textTag: b2TextTag,
+                  alignment: b2Alignment,
+                  bgColor: b2BgColor,
+                  marqueeEnabled: b2MarqueeEnabled,
+                  marqueeDirection: b2MarqueeDirection,
+                  selectedAspectUrl: b2SelectedAspectUrl,
+                  aspectRatioNum: b2AspectNum,
+                }
+              });
+            } catch (err) {
+              console.error('Failed to sync settings on first upload:', err);
+            }
+          });
+        } else {
+          // Just save settings with the updated list
+          dbUpdateBanners({
+            banner1: {
+              type: b1Type,
+              urls: next,
+              text: b1Text,
+              textColor: b1TextColor,
+              textSize: b1TextSize,
+              duration: Number(b1Duration) || 5,
+              textTag: b1TextTag,
+              alignment: b1Alignment,
+              bgColor: b1BgColor,
+              marqueeEnabled: b1MarqueeEnabled,
+              marqueeDirection: b1MarqueeDirection,
+              selectedAspectUrl: b1SelectedAspectUrl,
+              aspectRatioNum: b1AspectNum,
+            },
+            banner2: {
+              type: b2Type,
+              urls: b2Urls,
+              text: b2Text,
+              textColor: b2TextColor,
+              textSize: b2TextSize,
+              duration: Number(b2Duration) || 5,
+              textTag: b2TextTag,
+              alignment: b2Alignment,
+              bgColor: b2BgColor,
+              marqueeEnabled: b2MarqueeEnabled,
+              marqueeDirection: b2MarqueeDirection,
+              selectedAspectUrl: b2SelectedAspectUrl,
+              aspectRatioNum: b2AspectNum,
+            }
+          }).catch(err => console.error('Failed to sync list on upload:', err));
+        }
+        return next;
+      });
+    } else {
+      setB2Urls((prev) => {
+        const next = [...prev, url];
+        if (prev.length === 0) {
+          // Auto-tick and set custom aspect ratio
+          setB2SelectedAspectUrl(url);
+          getImageAspectRatio(url).then(async (aspect) => {
+            setB2AspectNum(aspect);
+            try {
+              await dbUpdateBanners({
+                banner1: {
+                  type: b1Type,
+                  urls: b1Urls,
+                  text: b1Text,
+                  textColor: b1TextColor,
+                  textSize: b1TextSize,
+                  duration: Number(b1Duration) || 5,
+                  textTag: b1TextTag,
+                  alignment: b1Alignment,
+                  bgColor: b1BgColor,
+                  marqueeEnabled: b1MarqueeEnabled,
+                  marqueeDirection: b1MarqueeDirection,
+                  selectedAspectUrl: b1SelectedAspectUrl,
+                  aspectRatioNum: b1AspectNum,
+                },
+                banner2: {
+                  type: b2Type,
+                  urls: next,
+                  text: b2Text,
+                  textColor: b2TextColor,
+                  textSize: b2TextSize,
+                  duration: Number(b2Duration) || 5,
+                  textTag: b2TextTag,
+                  alignment: b2Alignment,
+                  bgColor: b2BgColor,
+                  marqueeEnabled: b2MarqueeEnabled,
+                  marqueeDirection: b2MarqueeDirection,
+                  selectedAspectUrl: url,
+                  aspectRatioNum: aspect,
+                }
+              });
+            } catch (err) {
+              console.error('Failed to sync settings on first upload:', err);
+            }
+          });
+        } else {
+          // Just save settings with the updated list
+          dbUpdateBanners({
+            banner1: {
+              type: b1Type,
+              urls: b1Urls,
+              text: b1Text,
+              textColor: b1TextColor,
+              textSize: b1TextSize,
+              duration: Number(b1Duration) || 5,
+              textTag: b1TextTag,
+              alignment: b1Alignment,
+              bgColor: b1BgColor,
+              marqueeEnabled: b1MarqueeEnabled,
+              marqueeDirection: b1MarqueeDirection,
+              selectedAspectUrl: b1SelectedAspectUrl,
+              aspectRatioNum: b1AspectNum,
+            },
+            banner2: {
+              type: b2Type,
+              urls: next,
+              text: b2Text,
+              textColor: b2TextColor,
+              textSize: b2TextSize,
+              duration: Number(b2Duration) || 5,
+              textTag: b2TextTag,
+              alignment: b2Alignment,
+              bgColor: b2BgColor,
+              marqueeEnabled: b2MarqueeEnabled,
+              marqueeDirection: b2MarqueeDirection,
+              selectedAspectUrl: b2SelectedAspectUrl,
+              aspectRatioNum: b2AspectNum,
+            }
+          }).catch(err => console.error('Failed to sync list on upload:', err));
+        }
+        return next;
+      });
+    }
+  };
+
   // Read dropped file to base64 (carrying out modern compression for images) and append to urls list
   const handleBannerUrlDrop = async (file: File, bannerNumber: 1 | 2) => {
     if (!file) return;
@@ -519,22 +698,14 @@ export default function AdminPortal({
           processingMode: compResult.processingMode
         });
 
-        if (bannerNumber === 1) {
-          setB1Urls((prev) => [...prev, compressedBase64]);
-        } else {
-          setB2Urls((prev) => [...prev, compressedBase64]);
-        }
+        await addUrlToBanner(bannerNumber, compressedBase64);
       } catch (err) {
         console.error('Error in banner image compression, falling back to raw:', err);
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           const result = e.target?.result;
           if (typeof result === 'string') {
-            if (bannerNumber === 1) {
-              setB1Urls((prev) => [...prev, result]);
-            } else {
-              setB2Urls((prev) => [...prev, result]);
-            }
+            await addUrlToBanner(bannerNumber, result);
           }
         };
         reader.readAsDataURL(file);
@@ -542,14 +713,10 @@ export default function AdminPortal({
     } else {
       // Direct raw reader for videos
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const result = e.target?.result;
         if (typeof result === 'string') {
-          if (bannerNumber === 1) {
-            setB1Urls((prev) => [...prev, result]);
-          } else {
-            setB2Urls((prev) => [...prev, result]);
-          }
+          await addUrlToBanner(bannerNumber, result);
         }
       };
       reader.readAsDataURL(file);
@@ -574,6 +741,8 @@ export default function AdminPortal({
           bgColor: b1BgColor,
           marqueeEnabled: b1MarqueeEnabled,
           marqueeDirection: b1MarqueeDirection,
+          selectedAspectUrl: b1SelectedAspectUrl,
+          aspectRatioNum: b1AspectNum,
         },
         banner2: {
           type: b2Type,
@@ -587,6 +756,8 @@ export default function AdminPortal({
           bgColor: b2BgColor,
           marqueeEnabled: b2MarqueeEnabled,
           marqueeDirection: b2MarqueeDirection,
+          selectedAspectUrl: b2SelectedAspectUrl,
+          aspectRatioNum: b2AspectNum,
         },
       });
       setSaveSuccess(true);
@@ -1347,27 +1518,146 @@ export default function AdminPortal({
                           <div className="space-y-2">
                             <span className="text-[9px] uppercase font-bold tracking-widest text-[#a8a29e]">Slides Carousel Items ({b1Urls.length})</span>
                             <div className="max-h-52 overflow-y-auto space-y-1.5 border border-stone-200 p-2 bg-stone-50 divide-y divide-stone-100">
-                              {b1Urls.map((url, index) => (
-                                <div key={index} className="flex items-center justify-between py-1.5 gap-2">
-                                  <div className="flex items-center gap-2 overflow-hidden truncate">
-                                    <div className="w-10 h-7 bg-stone-950 border border-stone-200/50 shrink-0 overflow-hidden flex items-center justify-center text-white text-[8px] font-mono">
-                                      {b1Type === 'Image' ? (
-                                        <img src={url} alt="Slide thumb" className="w-full h-full object-cover" />
-                                      ) : (
-                                        <Play className="w-3 h-3 text-[var(--theme-accent)] fill-[var(--theme-accent)]" />
-                                      )}
+                              {b1Urls.map((url, index) => {
+                                const isSelectedAspect = b1SelectedAspectUrl === url;
+                                return (
+                                  <div key={index} className="flex items-center justify-between py-1.5 gap-2">
+                                    <div className="flex items-center gap-2 overflow-hidden truncate">
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          setB1SelectedAspectUrl(url);
+                                          try {
+                                            const aspect = await getImageAspectRatio(url);
+                                            setB1AspectNum(aspect);
+                                            await dbUpdateBanners({
+                                              banner1: {
+                                                type: b1Type,
+                                                urls: b1Urls,
+                                                text: b1Text,
+                                                textColor: b1TextColor,
+                                                textSize: b1TextSize,
+                                                duration: Number(b1Duration) || 5,
+                                                textTag: b1TextTag,
+                                                alignment: b1Alignment,
+                                                bgColor: b1BgColor,
+                                                marqueeEnabled: b1MarqueeEnabled,
+                                                marqueeDirection: b1MarqueeDirection,
+                                                selectedAspectUrl: url,
+                                                aspectRatioNum: aspect,
+                                              },
+                                              banner2: {
+                                                type: b2Type,
+                                                urls: b2Urls,
+                                                text: b2Text,
+                                                textColor: b2TextColor,
+                                                textSize: b2TextSize,
+                                                duration: Number(b2Duration) || 5,
+                                                textTag: b2TextTag,
+                                                alignment: b2Alignment,
+                                                bgColor: b2BgColor,
+                                                marqueeEnabled: b2MarqueeEnabled,
+                                                marqueeDirection: b2MarqueeDirection,
+                                                selectedAspectUrl: b2SelectedAspectUrl,
+                                                aspectRatioNum: b2AspectNum,
+                                              }
+                                            });
+                                          } catch (err) {
+                                            console.warn('Could not determine aspect ratio: ', err);
+                                          }
+                                        }}
+                                        className={`flex items-center justify-center w-5 h-5 border rounded-full transition shrink-0 ${
+                                          isSelectedAspect 
+                                            ? 'bg-emerald-600 border-emerald-700 text-white shadow-xs' 
+                                            : 'border-stone-300 text-stone-400 hover:border-emerald-500 bg-white'
+                                        }`}
+                                        title="Click to set homepage slides to this aspect ratio (TICK)"
+                                      >
+                                        <Check className="w-3 h-3" />
+                                      </button>
+                                      <div className="w-10 h-7 bg-stone-950 border border-stone-200/50 shrink-0 overflow-hidden flex items-center justify-center text-white text-[8px] font-mono">
+                                        {b1Type === 'Image' ? (
+                                          <img src={url} alt="Slide thumb" className="w-full h-full object-cover" />
+                                        ) : (
+                                          <Play className="w-3 h-3 text-[var(--theme-accent)] fill-[var(--theme-accent)]" />
+                                        )}
+                                      </div>
+                                      <span className="text-[10px] font-mono text-stone-500 truncate max-w-[150px] font-semibold" title={url}>{url}</span>
                                     </div>
-                                    <span className="text-[10px] font-mono text-stone-500 truncate max-w-[180px] font-semibold" title={url}>{url}</span>
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        const nextUrls = b1Urls.filter((_, i) => i !== index);
+                                        setB1Urls(nextUrls);
+                                        
+                                        let nextSelectedUrl = b1SelectedAspectUrl;
+                                        let nextAspectNum = b1AspectNum;
+                                        
+                                        if (b1SelectedAspectUrl === url) {
+                                          if (nextUrls.length > 0) {
+                                            nextSelectedUrl = nextUrls[0];
+                                            try {
+                                              nextAspectNum = await getImageAspectRatio(nextUrls[0]);
+                                            } catch (err) {
+                                              nextAspectNum = undefined;
+                                            }
+                                          } else {
+                                            nextSelectedUrl = '';
+                                            nextAspectNum = undefined;
+                                          }
+                                          setB1SelectedAspectUrl(nextSelectedUrl);
+                                          setB1AspectNum(nextAspectNum);
+                                        }
+                                        
+                                        await dbUpdateBanners({
+                                          banner1: {
+                                            type: b1Type,
+                                            urls: nextUrls,
+                                            text: b1Text,
+                                            textColor: b1TextColor,
+                                            textSize: b1TextSize,
+                                            duration: Number(b1Duration) || 5,
+                                            textTag: b1TextTag,
+                                            alignment: b1Alignment,
+                                            bgColor: b1BgColor,
+                                            marqueeEnabled: b1MarqueeEnabled,
+                                            marqueeDirection: b1MarqueeDirection,
+                                            selectedAspectUrl: nextSelectedUrl,
+                                            aspectRatioNum: nextAspectNum,
+                                          },
+                                          banner2: {
+                                            type: b2Type,
+                                            urls: b2Urls,
+                                            text: b2Text,
+                                            textColor: b2TextColor,
+                                            textSize: b2TextSize,
+                                            duration: Number(b2Duration) || 5,
+                                            textTag: b2TextTag,
+                                            alignment: b2Alignment,
+                                            bgColor: b2BgColor,
+                                            marqueeEnabled: b2MarqueeEnabled,
+                                            marqueeDirection: b2MarqueeDirection,
+                                            selectedAspectUrl: b2SelectedAspectUrl,
+                                            aspectRatioNum: b2AspectNum,
+                                          }
+                                        });
+                                      }}
+                                      className="p-1 text-red-500 hover:text-red-700 hover:bg-stone-200/50 rounded-xs transition"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setB1Urls((prev) => prev.filter((_, i) => i !== index))}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-stone-200/50 rounded-xs transition"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ))}
+                                );
+                              })}
+                            </div>
+                            <div className="bg-emerald-50 border border-emerald-200 p-2.5 space-y-1">
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800 flex items-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                Custom Aspect Ratio Lock Active
+                              </span>
+                              <p className="text-[10px] text-emerald-700 leading-relaxed font-sans">
+                                Jis image ko green circle (tick) kiya hai, homepage par usi image ke aspect ratio me hi dono banner render honge. Isse refresh hone par layout nahi hilta.
+                              </p>
                             </div>
                           </div>
                         ) : (
@@ -1665,27 +1955,146 @@ export default function AdminPortal({
                           <div className="space-y-2">
                             <span className="text-[9px] uppercase font-bold tracking-widest text-[#a8a29e]">Slides Carousel Items ({b2Urls.length})</span>
                             <div className="max-h-52 overflow-y-auto space-y-1.5 border border-stone-200 p-2 bg-stone-50 divide-y divide-stone-100">
-                              {b2Urls.map((url, index) => (
-                                <div key={index} className="flex items-center justify-between py-1.5 gap-2">
-                                  <div className="flex items-center gap-2 overflow-hidden truncate">
-                                    <div className="w-10 h-7 bg-stone-950 border border-stone-200/50 shrink-0 overflow-hidden flex items-center justify-center text-white text-[8px] font-mono">
-                                      {b2Type === 'Image' ? (
-                                        <img src={url} alt="Slide thumb" className="w-full h-full object-cover" />
-                                      ) : (
-                                        <Play className="w-3 h-3 text-[var(--theme-accent)] fill-[var(--theme-accent)]" />
-                                      )}
+                              {b2Urls.map((url, index) => {
+                                const isSelectedAspect = b2SelectedAspectUrl === url;
+                                return (
+                                  <div key={index} className="flex items-center justify-between py-1.5 gap-2">
+                                    <div className="flex items-center gap-2 overflow-hidden truncate">
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          setB2SelectedAspectUrl(url);
+                                          try {
+                                            const aspect = await getImageAspectRatio(url);
+                                            setB2AspectNum(aspect);
+                                            await dbUpdateBanners({
+                                              banner1: {
+                                                type: b1Type,
+                                                urls: b1Urls,
+                                                text: b1Text,
+                                                textColor: b1TextColor,
+                                                textSize: b1TextSize,
+                                                duration: Number(b1Duration) || 5,
+                                                textTag: b1TextTag,
+                                                alignment: b1Alignment,
+                                                bgColor: b1BgColor,
+                                                marqueeEnabled: b1MarqueeEnabled,
+                                                marqueeDirection: b1MarqueeDirection,
+                                                selectedAspectUrl: b1SelectedAspectUrl,
+                                                aspectRatioNum: b1AspectNum,
+                                              },
+                                              banner2: {
+                                                type: b2Type,
+                                                urls: b2Urls,
+                                                text: b2Text,
+                                                textColor: b2TextColor,
+                                                textSize: b2TextSize,
+                                                duration: Number(b2Duration) || 5,
+                                                textTag: b2TextTag,
+                                                alignment: b2Alignment,
+                                                bgColor: b2BgColor,
+                                                marqueeEnabled: b2MarqueeEnabled,
+                                                marqueeDirection: b2MarqueeDirection,
+                                                selectedAspectUrl: url,
+                                                aspectRatioNum: aspect,
+                                              }
+                                            });
+                                          } catch (err) {
+                                            console.warn('Could not determine aspect ratio: ', err);
+                                          }
+                                        }}
+                                        className={`flex items-center justify-center w-5 h-5 border rounded-full transition shrink-0 ${
+                                          isSelectedAspect 
+                                            ? 'bg-emerald-600 border-emerald-700 text-white shadow-xs' 
+                                            : 'border-stone-300 text-stone-400 hover:border-emerald-500 bg-white'
+                                        }`}
+                                        title="Click to set homepage slides to this aspect ratio (TICK)"
+                                      >
+                                        <Check className="w-3 h-3" />
+                                      </button>
+                                      <div className="w-10 h-7 bg-stone-950 border border-stone-200/50 shrink-0 overflow-hidden flex items-center justify-center text-white text-[8px] font-mono">
+                                        {b2Type === 'Image' ? (
+                                          <img src={url} alt="Slide thumb" className="w-full h-full object-cover" />
+                                        ) : (
+                                          <Play className="w-3 h-3 text-[var(--theme-accent)] fill-[var(--theme-accent)]" />
+                                        )}
+                                      </div>
+                                      <span className="text-[10px] font-mono text-stone-500 truncate max-w-[150px] font-semibold" title={url}>{url}</span>
                                     </div>
-                                    <span className="text-[10px] font-mono text-stone-500 truncate max-w-[180px] font-semibold" title={url}>{url}</span>
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        const nextUrls = b2Urls.filter((_, i) => i !== index);
+                                        setB2Urls(nextUrls);
+                                        
+                                        let nextSelectedUrl = b2SelectedAspectUrl;
+                                        let nextAspectNum = b2AspectNum;
+                                        
+                                        if (b2SelectedAspectUrl === url) {
+                                          if (nextUrls.length > 0) {
+                                            nextSelectedUrl = nextUrls[0];
+                                            try {
+                                              nextAspectNum = await getImageAspectRatio(nextUrls[0]);
+                                            } catch (err) {
+                                              nextAspectNum = undefined;
+                                            }
+                                          } else {
+                                            nextSelectedUrl = '';
+                                            nextAspectNum = undefined;
+                                          }
+                                          setB2SelectedAspectUrl(nextSelectedUrl);
+                                          setB2AspectNum(nextAspectNum);
+                                        }
+                                        
+                                        await dbUpdateBanners({
+                                          banner1: {
+                                            type: b1Type,
+                                            urls: b1Urls,
+                                            text: b1Text,
+                                            textColor: b1TextColor,
+                                            textSize: b1TextSize,
+                                            duration: Number(b1Duration) || 5,
+                                            textTag: b1TextTag,
+                                            alignment: b1Alignment,
+                                            bgColor: b1BgColor,
+                                            marqueeEnabled: b1MarqueeEnabled,
+                                            marqueeDirection: b1MarqueeDirection,
+                                            selectedAspectUrl: b1SelectedAspectUrl,
+                                            aspectRatioNum: b1AspectNum,
+                                          },
+                                          banner2: {
+                                            type: b2Type,
+                                            urls: nextUrls,
+                                            text: b2Text,
+                                            textColor: b2TextColor,
+                                            textSize: b2TextSize,
+                                            duration: Number(b2Duration) || 5,
+                                            textTag: b2TextTag,
+                                            alignment: b2Alignment,
+                                            bgColor: b2BgColor,
+                                            marqueeEnabled: b2MarqueeEnabled,
+                                            marqueeDirection: b2MarqueeDirection,
+                                            selectedAspectUrl: nextSelectedUrl,
+                                            aspectRatioNum: nextAspectNum,
+                                          }
+                                        });
+                                      }}
+                                      className="p-1 text-red-500 hover:text-red-700 hover:bg-stone-200/50 rounded-xs transition"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setB2Urls((prev) => prev.filter((_, i) => i !== index))}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-stone-200/50 rounded-xs transition"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ))}
+                                );
+                              })}
+                            </div>
+                            <div className="bg-emerald-50 border border-emerald-200 p-2.5 space-y-1">
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800 flex items-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                Custom Aspect Ratio Lock Active
+                              </span>
+                              <p className="text-[10px] text-emerald-700 leading-relaxed font-sans">
+                                Jis image ko green circle (tick) kiya hai, homepage par usi image ke aspect ratio me hi dono banner render honge. Isse refresh hone par layout nahi hilta.
+                              </p>
                             </div>
                           </div>
                         ) : (
