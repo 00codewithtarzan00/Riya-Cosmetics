@@ -1,6 +1,9 @@
 import {useState, useMemo, useEffect, useRef} from 'react';
 import ProductCard, {Product, formatCustomQuantity} from './ProductCard.tsx';
-import {Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert} from 'lucide-react';
+import {
+  Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert,
+  Palette, Droplet, Scissors, Heart, Baby, Gem, Grid, Smile
+} from 'lucide-react';
 import { SettingsConfig } from '../firebaseService';
 import BannerSlider from './BannerSlider';
 
@@ -40,6 +43,27 @@ interface ProductCatalogProps {
   isLoading?: boolean;
   settings?: SettingsConfig | null;
 }
+
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case 'Makeup':
+      return <Palette className="w-4 h-4 shadow-xs" />;
+    case 'Skin Care':
+      return <Droplet className="w-4 h-4 shadow-xs" />;
+    case 'Hair Care':
+      return <Scissors className="w-4 h-4 shadow-xs text-amber-600" />;
+    case 'Body Care':
+      return <Smile className="w-4 h-4 shadow-xs text-emerald-600" />;
+    case 'Undergarments':
+      return <Heart className="w-4 h-4 shadow-xs text-rose-500" />;
+    case 'Baby Care':
+      return <Baby className="w-4 h-4 shadow-xs text-sky-500" />;
+    case 'Bangles & Ornaments':
+      return <Gem className="w-4 h-4 shadow-xs text-purple-600" />;
+    default:
+      return <Grid className="w-4 h-4 shadow-xs" />;
+  }
+};
 
 export default function ProductCatalog({products, isLoading = false, settings}: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -215,14 +239,25 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
           </div>
         )}
 
-        {/* Categorization Tabs */}
+        {/* Categorization Title */}
+        <div className="flex items-center justify-between mb-3.5 select-none mt-2">
+          <h2 className="text-[10px] tracking-[0.22em] font-extrabold text-[#1A1A1A] uppercase flex items-center gap-2 font-sans">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--theme-accent)] animate-pulse" />
+            Shop By Categories / श्रेणियाँ
+          </h2>
+          <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest hidden sm:inline">
+            Choose to filter products
+          </span>
+        </div>
+
+        {/* Categorization Tabs - Prominent Eye-Catching Rectangular Boxes with Icons */}
         <div 
-          className={`sticky top-[80px] z-30 py-1.5 border-b border-[var(--theme-border)] flex items-center gap-2 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all ${
-            settings?.banner2 && settings.banner2.type !== 'None' ? 'mb-3' : 'mb-4'
+          className={`sticky top-[80px] z-30 py-3 border-y border-[var(--theme-border)]/90 flex items-center gap-2.5 overflow-x-auto scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all ${
+            settings?.banner2 && settings.banner2.type !== 'None' ? 'mb-4' : 'mb-6'
           }`}
-          style={{ backgroundColor: 'rgba(250, 249, 245, 0.95)' }}
+          style={{ backgroundColor: 'rgba(250, 249, 245, 0.98)' }}
         >
-          <div className="flex items-center gap-2 overflow-visible md:flex-wrap pb-0.5 md:pb-0">
+          <div className="flex items-center gap-3 overflow-visible md:flex-wrap pb-1 md:pb-0 w-full">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat;
               return (
@@ -230,13 +265,16 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
                   key={cat}
                   id={`cat-tab-${cat.toLowerCase()}`}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 sm:px-5 py-2 text-xs font-semibold tracking-wider capitalize transition-all duration-300 rounded-none cursor-pointer border whitespace-nowrap ${
+                  className={`flex items-center gap-2.5 px-5 py-3 text-xs font-bold tracking-wider capitalize cursor-pointer border-[2px] transition-all duration-300 rounded-none whitespace-nowrap group select-none active:scale-95 ${
                     isActive 
-                      ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]' 
-                      : 'bg-transparent text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border)]'
+                      ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)] shadow-[3px_3px_0px_0px_rgba(255,0,82,0.18)] scale-[1.03]' 
+                      : 'bg-white text-stone-800 border-stone-400 hover:text-[var(--theme-accent)] hover:border-[var(--theme-accent)] hover:bg-[var(--theme-accent-glow)] hover:shadow-[3px_3px_0px_0px_rgba(255,0,82,0.12)]'
                   }`}
                 >
-                  {cat}
+                  <span className={`transition-transform duration-300 group-hover:scale-120 ${isActive ? 'text-white' : 'text-stone-500 group-hover:text-[var(--theme-accent)]'}`}>
+                    {getCategoryIcon(cat)}
+                  </span>
+                  <span className="font-sans text-[11.5px] font-bold tracking-wide">{cat}</span>
                 </button>
               );
             })}
