@@ -1,6 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { BannerConfig } from '../firebaseService';
+
+interface VideoSlideProps {
+  url: string;
+  isActive: boolean;
+  onLoadedMetadata?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
+}
+
+function VideoSlide({ url, isActive, onLoadedMetadata }: VideoSlideProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.log('Video autoplay request delayed or blocked:', err);
+        });
+      }
+    } else {
+      video.pause();
+    }
+  }, [isActive]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={url}
+      onLoadedMetadata={onLoadedMetadata}
+      loop
+      muted
+      playsInline
+      className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${
+        isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+    />
+  );
+}
 
 interface BannerSliderProps {
   banner: BannerConfig;
@@ -232,17 +272,11 @@ export default function BannerSlider({ banner, title = 'Banner' }: BannerSliderP
       {banner.type === 'Video' && banner.urls && banner.urls.length > 0 && (
         <div className="absolute inset-0 w-full h-full overflow-hidden bg-white">
           {banner.urls.map((url, idx) => (
-            <video 
+            <VideoSlide 
               key={url}
-              src={url}
+              url={url}
+              isActive={idx === activeIndex}
               onLoadedMetadata={idx === 0 ? handleVideoLoad : undefined}
-              autoPlay 
-              loop 
-              muted 
-              playsInline 
-              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${
-                idx === activeIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
             />
           ))}
         </div>
