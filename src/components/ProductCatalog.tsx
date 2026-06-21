@@ -243,7 +243,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
         <div className="flex items-center justify-between mb-3.5 select-none mt-2">
           <h2 className="text-[10px] tracking-[0.22em] font-extrabold text-[#1A1A1A] uppercase flex items-center gap-2 font-sans">
             <Sparkles className="w-3.5 h-3.5 text-[var(--theme-accent)] animate-pulse" />
-            Shop By Categories / श्रेणियाँ
+            Shop By Categories
           </h2>
           <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest hidden sm:inline">
             Choose to filter products
