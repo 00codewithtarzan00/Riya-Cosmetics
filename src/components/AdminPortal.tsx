@@ -1023,6 +1023,7 @@ export default function AdminPortal({
     'Undergarments': 'https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&q=80&w=600',
     'Baby Care': 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&q=80&w=600',
     'Bangles & Ornaments': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
+    'Others': 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=600',
   };
 
   // Synchronise sessions through sessionStorage
@@ -2629,6 +2630,7 @@ export default function AdminPortal({
                       <option value="Undergarments">Undergarments</option>
                       <option value="Baby Care">Baby Care</option>
                       <option value="Bangles & Ornaments">Bangles & Ornaments</option>
+                      <option value="Others">Others</option>
                     </select>
                   </div>
 

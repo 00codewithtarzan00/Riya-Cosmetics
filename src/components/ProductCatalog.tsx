@@ -2,7 +2,7 @@ import {useState, useMemo, useEffect, useRef} from 'react';
 import ProductCard, {Product, formatCustomQuantity} from './ProductCard.tsx';
 import {
   Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert,
-  Palette, Droplet, Scissors, Heart, Baby, Gem, Grid, Smile
+  Palette, Droplet, Scissors, Heart, Baby, Gem, Grid, Smile, Boxes
 } from 'lucide-react';
 import { SettingsConfig } from '../firebaseService';
 import BannerSlider from './BannerSlider';
@@ -60,6 +60,8 @@ const getCategoryIcon = (category: string) => {
       return <Baby className="w-4 h-4 shadow-xs text-sky-500" />;
     case 'Bangles & Ornaments':
       return <Gem className="w-4 h-4 shadow-xs text-purple-600" />;
+    case 'Others':
+      return <Boxes className="w-4 h-4 shadow-xs text-indigo-500" />;
     default:
       return <Grid className="w-4 h-4 shadow-xs" />;
   }
@@ -75,7 +77,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  const categories = ['All', 'Makeup', 'Skin Care', 'Hair Care', 'Body Care', 'Undergarments', 'Baby Care', 'Bangles & Ornaments'];
+  const categories = ['All', 'Makeup', 'Skin Care', 'Hair Care', 'Body Care', 'Undergarments', 'Baby Care', 'Bangles & Ornaments', 'Others'];
 
   // Handle product sorting and filtering
   const filteredAndSortedProducts = useMemo(() => {
