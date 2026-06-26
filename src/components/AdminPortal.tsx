@@ -1130,8 +1130,8 @@ export default function AdminPortal({
     setFormError('');
 
     // Pre-validation
-    if (!formName.trim() || !formMrp.trim() || !formSp.trim() || !formDescription.trim()) {
-      setFormError('Please fill in all core fields (Name, MRP, Selling Price, and Description).');
+    if (!formName.trim() || !formMrp.trim() || !formSp.trim()) {
+      setFormError('Please fill in all core fields (Name, MRP, and Selling Price).');
       return;
     }
 
@@ -2742,6 +2742,7 @@ export default function AdminPortal({
                       >
                         <option value="dozen">Dozen</option>
                         <option value="piece">Piece</option>
+                        <option value="set">Set</option>
                         <option value="ml">ml</option>
                         <option value="l">l</option>
                         <option value="kg">kg</option>
@@ -2756,7 +2757,7 @@ export default function AdminPortal({
                 {/* Narrative description */}
                 <div>
                   <label className="block text-[9.5px] tracking-widest uppercase font-bold text-[var(--theme-text-muted)] mb-1">
-                    Details / Formula Description *
+                    Details / Formula Description (Optional)
                   </label>
                   <textarea
                     id="form-product-description"
@@ -2765,7 +2766,6 @@ export default function AdminPortal({
                     placeholder="Briefly describe formula highlights, finish type, and wear time..."
                     rows={2}
                     className="w-full px-2.5 py-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] text-xs text-[var(--theme-text-primary)] rounded-none focus:outline-none focus:border-[var(--theme-accent)] resize-y min-h-[48px]"
-                    required
                   />
                 </div>
 
