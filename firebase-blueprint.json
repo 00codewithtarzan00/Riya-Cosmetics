@@ -45,6 +45,36 @@
         "banner2": { "type": "object", "$ref": "BannerConfig", "description": "Banner 2 configuration details" }
       },
       "required": ["banner1", "banner2"]
+    },
+    "OrderItem": {
+      "title": "OrderItem",
+      "description": "Item in a customer's cosmetic order",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "description": "Unique product ID" },
+        "name": { "type": "string", "description": "Product name" },
+        "price": { "type": "number", "description": "Selling price of product at order time" },
+        "qtyVal": { "type": "number", "description": "Value of custom quantity" },
+        "qtyUnit": { "type": "string", "description": "Unit of custom quantity" },
+        "orderedQty": { "type": "number", "description": "Quantity ordered by the customer" }
+      },
+      "required": ["productId", "name", "price", "orderedQty"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique order ID" },
+        "customerName": { "type": "string", "description": "Customer's name" },
+        "customerPhone": { "type": "string", "description": "Customer's phone number" },
+        "customerAddress": { "type": "string", "description": "Customer's delivery address" },
+        "items": { "type": "array", "description": "List of ordered cosmetic items" },
+        "totalAmount": { "type": "number", "description": "Total amount of the order in INR" },
+        "status": { "type": "string", "enum": ["Pending", "Processing", "Dispatched", "Delivered", "Cancelled"], "description": "Current workflow status of the order" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when order was placed" }
+      },
+      "required": ["customerName", "customerPhone", "customerAddress", "items", "totalAmount", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -55,6 +85,10 @@
     "/settings/{settingId}": {
       "schema": "Setting",
       "description": "Application settings and dynamic slider configuration"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders submitted from checkout"
     }
   }
 }

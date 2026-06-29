@@ -2,9 +2,10 @@ import {useState, useMemo, useEffect, useRef} from 'react';
 import ProductCard, {Product, formatCustomQuantity} from './ProductCard.tsx';
 import {
   Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert,
-  Palette, Droplet, Scissors, Heart, Baby, Gem, Grid, Smile, Boxes
+  Palette, Droplet, Scissors, Heart, Baby, Gem, Grid, Smile, Boxes,
+  ShoppingCart, Plus, Minus, Trash2, User, ShoppingBag, Phone, MapPin, MessageSquare, Check, ArrowLeft, ArrowRight
 } from 'lucide-react';
-import { SettingsConfig } from '../firebaseService';
+import { SettingsConfig, dbAddOrder } from '../firebaseService';
 import BannerSlider from './BannerSlider';
 
 function ProductCardSkeleton() {
@@ -42,6 +43,13 @@ interface ProductCatalogProps {
   products: Product[];
   isLoading?: boolean;
   settings?: SettingsConfig | null;
+  cart: { product: Product; quantity: number }[];
+  onAddToCart: (product: Product) => void;
+  onUpdateCartQuantity: (productId: string | number, quantity: number) => void;
+  onRemoveFromCart: (productId: string | number) => void;
+  onClearCart: () => void;
+  isCartOpen: boolean;
+  setIsCartOpen: (isOpen: boolean) => void;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -67,7 +75,18 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
-export default function ProductCatalog({products, isLoading = false, settings}: ProductCatalogProps) {
+export default function ProductCatalog({
+  products, 
+  isLoading = false, 
+  settings,
+  cart,
+  onAddToCart,
+  onUpdateCartQuantity,
+  onRemoveFromCart,
+  onClearCart,
+  isCartOpen,
+  setIsCartOpen
+}: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('default');
@@ -76,6 +95,115 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
   const [visibleCount, setVisibleCount] = useState<number>(6);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Checkout-related local states
+  const [isCheckoutStep, setIsCheckoutStep] = useState<boolean>(false);
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [customerAddress, setCustomerAddress] = useState<string>('');
+  const [isPlacingOrder, setIsPlacingOrder] = useState<boolean>(false);
+  const [orderSuccessId, setOrderSuccessId] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string>('');
+
+  const [placedOrderItems, setPlacedOrderItems] = useState<{ name: string; quantity: number; price: number; qtyVal?: string | number; qtyUnit?: string }[]>([]);
+  const [placedTotal, setPlacedTotal] = useState<number>(0);
+
+  const cartSubtotal = useMemo(() => {
+    return cart.reduce((total, item) => {
+      const itemPrice = item.product.sp !== undefined ? item.product.sp : (item.product.priceInINR || 0);
+      return total + (itemPrice * item.quantity);
+    }, 0);
+  }, [cart]);
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!customerName.trim() || !customerPhone.trim() || !customerAddress.trim()) {
+      setFormError('कृपया सभी आवश्यक जानकारी भरें। / Please fill all required fields.');
+      return;
+    }
+
+    setIsPlacingOrder(true);
+    try {
+      const orderItems = cart.map(item => {
+        const orderItem: any = {
+          productId: String(item.product.id),
+          name: item.product.name,
+          orderedQty: item.quantity,
+          price: item.product.sp !== undefined ? item.product.sp : (item.product.priceInINR || 0)
+        };
+        if (item.product.qtyVal !== undefined && item.product.qtyVal !== null && !isNaN(Number(item.product.qtyVal))) {
+          orderItem.qtyVal = Number(item.product.qtyVal);
+        }
+        if (item.product.qtyUnit) {
+          orderItem.qtyUnit = item.product.qtyUnit;
+        }
+        return orderItem;
+      });
+
+      // Cache order items & total for WhatsApp message before clearing cart
+      const orderItemsCopy = cart.map(item => {
+        const itemCopy: any = {
+          name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.sp !== undefined ? item.product.sp : (item.product.priceInINR || 0)
+        };
+        if (item.product.qtyVal !== undefined && item.product.qtyVal !== null) {
+          itemCopy.qtyVal = item.product.qtyVal;
+        }
+        if (item.product.qtyUnit) {
+          itemCopy.qtyUnit = item.product.qtyUnit;
+        }
+        return itemCopy;
+      });
+      setPlacedOrderItems(orderItemsCopy);
+      setPlacedTotal(cartSubtotal);
+
+      const newOrderId = await dbAddOrder({
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        customerAddress: customerAddress.trim(),
+        items: orderItems,
+        totalAmount: cartSubtotal,
+        status: 'Pending',
+        createdAt: new Date().toISOString()
+      });
+
+      setOrderSuccessId(newOrderId);
+      onClearCart();
+    } catch (err: any) {
+      console.error('Failed to book order:', err);
+      setFormError('Failed to book order. Please try again.');
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!orderSuccessId) return;
+    
+    const itemsList = placedOrderItems.map(item => {
+      const spec = item.qtyVal ? ` (${item.qtyVal} ${item.qtyUnit})` : '';
+      return `- ${item.name}${spec}: ${item.quantity} x ₹${item.price.toLocaleString('en-IN')}`;
+    }).join('\n');
+
+    const orderLink = `${window.location.origin}/#/invoice/${orderSuccessId}`;
+    
+    const message = `*New Order - Riya Cosmetics*\n\n` +
+      `Order ID: *${orderSuccessId}*\n` +
+      `Customer Name: *${customerName}*\n` +
+      `WhatsApp Number: *${customerPhone}*\n` +
+      `Address: *${customerAddress}*\n\n` +
+      `*Items List:*\n${itemsList}\n\n` +
+      `Total Amount: *₹${placedTotal.toLocaleString('en-IN')}*\n\n` +
+      `Click here to view your digital bill:\n${orderLink}\n\n` +
+      `Please accept my order! 🙏✨`;
+
+    const encodedMsg = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/91${customerPhone.replace(/[^0-9]/g, '')}?text=${encodedMsg}`;
+    window.open(whatsappUrl, '_blank');
+  };
 
   const categories = ['All', 'Makeup', 'Skin Care', 'Hair Care', 'Body Care', 'Undergarments', 'Baby Care', 'Bangles & Ornaments', 'Others'];
 
@@ -316,6 +444,7 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
                   key={p.id} 
                   product={p} 
                   onViewDetails={setSelectedProduct} 
+                  onAddToCart={onAddToCart}
                 />
               ))}
 
@@ -493,10 +622,517 @@ export default function ProductCatalog({products, isLoading = false, settings}: 
                       </p>
                     </div>
                   </div>
+
+                  {/* Modal Add to Cart Integration Section */}
+                  <div className="mt-8 pt-6 border-t border-[var(--theme-border)]/60">
+                    {selectedProduct.inStock !== false ? (
+                      <button
+                        id="modal-add-to-cart-btn"
+                        onClick={() => {
+                          onAddToCart(selectedProduct);
+                          setSelectedProduct(null); // auto close modal on add to prevent overlay clashing
+                        }}
+                        className="w-full py-3 bg-stone-900 text-white font-bold text-xs tracking-widest uppercase hover:bg-[var(--theme-accent)] transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" /> Add to Cart (₹{(selectedProduct.sp || selectedProduct.priceInINR || 0).toLocaleString('en-IN')})
+                      </button>
+                    ) : (
+                      <div className="text-center py-2.5 bg-red-50 border border-red-100 text-red-600 text-xs font-bold uppercase tracking-wider">
+                        Out of Stock / अनुपलब्ध
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {/* Cart Drawer sliding sidebar overlay */}
+        {isCartOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden animate-fade-in" id="cart-drawer-container">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity duration-500 ease-out" 
+              onClick={() => setIsCartOpen(false)}
+            />
+
+            <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+              <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-stone-200">
+                
+                {/* Cart Drawer Header */}
+                <div className="p-5 border-b border-stone-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-[var(--theme-accent)]" />
+                    <span className="text-sm font-extrabold uppercase tracking-widest text-stone-900">
+                      {isCheckoutStep ? 'Checkout Form' : 'Your Shopping Bag'}
+                    </span>
+                    <span className="bg-stone-100 text-stone-800 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {cart.reduce((a, c) => a + c.quantity, 0)} Items
+                    </span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      if (orderSuccessId) {
+                        setOrderSuccessId(null);
+                        setIsCheckoutStep(false);
+                        setCustomerName('');
+                        setCustomerPhone('');
+                        setCustomerAddress('');
+                      }
+                    }}
+                    className="p-1.5 text-stone-400 hover:text-stone-900 transition-colors cursor-pointer outline-none"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Interactive Visual Step Tracker */}
+                <div className="px-5 py-4 bg-stone-50 border-b border-stone-100 flex items-center justify-between text-xs select-none">
+                  {/* Step 1: Cart */}
+                  <button
+                    disabled={!!orderSuccessId}
+                    onClick={() => {
+                      if (!orderSuccessId) {
+                        setIsCheckoutStep(false);
+                      }
+                    }}
+                    className={`flex items-center gap-2 font-mono uppercase text-[10px] font-bold tracking-wider transition-all duration-300 ${
+                      orderSuccessId 
+                        ? 'text-stone-300 cursor-not-allowed'
+                        : !isCheckoutStep 
+                          ? 'text-[var(--theme-accent)] scale-105' 
+                          : 'text-stone-500 hover:text-stone-900 cursor-pointer'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center border font-mono text-[9px] ${
+                      !isCheckoutStep && !orderSuccessId
+                        ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]'
+                        : orderSuccessId
+                          ? 'bg-stone-100 text-stone-300 border-stone-200'
+                          : 'bg-white text-stone-600 border-stone-300'
+                    }`}>
+                      1
+                    </span>
+                    Cart
+                  </button>
+
+                  {/* Divider Line 1 */}
+                  <div className={`flex-1 h-[1px] mx-3 transition-colors duration-500 ${
+                    isCheckoutStep || orderSuccessId ? 'bg-[var(--theme-accent)]' : 'bg-stone-200'
+                  }`} />
+
+                  {/* Step 2: Address */}
+                  <button
+                    disabled={!!orderSuccessId || cart.length === 0}
+                    onClick={() => {
+                      if (!orderSuccessId && cart.length > 0) {
+                        setIsCheckoutStep(true);
+                      }
+                    }}
+                    className={`flex items-center gap-2 font-mono uppercase text-[10px] font-bold tracking-wider transition-all duration-300 ${
+                      orderSuccessId 
+                        ? 'text-stone-300 cursor-not-allowed'
+                        : isCheckoutStep 
+                          ? 'text-[var(--theme-accent)] scale-105' 
+                          : cart.length === 0
+                            ? 'text-stone-300 cursor-not-allowed'
+                            : 'text-stone-500 hover:text-stone-900 cursor-pointer'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center border font-mono text-[9px] ${
+                      isCheckoutStep && !orderSuccessId
+                        ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]'
+                        : orderSuccessId
+                          ? 'bg-stone-100 text-stone-300 border-stone-200'
+                          : 'bg-white text-stone-600 border-stone-300'
+                    }`}>
+                      2
+                    </span>
+                    Address
+                  </button>
+
+                  {/* Divider Line 2 */}
+                  <div className={`flex-1 h-[1px] mx-3 transition-colors duration-500 ${
+                    orderSuccessId ? 'bg-[var(--theme-accent)]' : 'bg-stone-200'
+                  }`} />
+
+                  {/* Step 3: Receipt */}
+                  <div
+                    className={`flex items-center gap-2 font-mono uppercase text-[10px] font-bold tracking-wider transition-all duration-300 ${
+                      orderSuccessId 
+                        ? 'text-[var(--theme-accent)] scale-105' 
+                        : 'text-stone-300'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center border font-mono text-[9px] ${
+                      orderSuccessId
+                        ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]'
+                        : 'bg-white text-stone-300 border-stone-200'
+                    }`}>
+                      3
+                    </span>
+                    Receipt
+                  </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-grow overflow-y-auto p-5">
+                  {orderSuccessId ? (
+                    /* Order Placed Success View */
+                    <div className="text-center py-8 px-4 flex flex-col items-center justify-center h-full">
+                      <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-6 border border-emerald-100 animate-bounce">
+                        <Check className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-extrabold uppercase tracking-wider text-stone-900 mb-2">
+                        Order Placed Successfully!
+                      </h3>
+                      <p className="text-xs text-stone-500 mb-6 max-w-xs font-medium leading-relaxed">
+                        Your order has been booked successfully in our real-time database. You can now view your digital bill or send it to us via WhatsApp.
+                      </p>
+                      
+                      <div className="bg-stone-50 border border-stone-200/60 p-4 w-full mb-8 rounded-sm text-left">
+                        <div className="text-[10px] uppercase font-mono tracking-widest text-stone-400 mb-1">Generated Order ID</div>
+                        <div className="text-sm font-bold text-stone-900 font-mono select-all select-text">{orderSuccessId}</div>
+                      </div>
+
+                      <div className="space-y-3.5 w-full">
+                        <button
+                          onClick={handleSendWhatsApp}
+                          className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer shadow-sm"
+                        >
+                          <MessageSquare className="w-4 h-4" /> Send Order via WhatsApp
+                        </button>
+                        
+                        <a
+                          href={`#/invoice/${orderSuccessId}`}
+                          onClick={() => setIsCartOpen(false)}
+                          className="w-full py-3 border border-stone-900 text-stone-900 hover:bg-stone-50 font-extrabold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer text-center"
+                        >
+                          View Digital Invoice
+                        </a>
+
+                        <button
+                          onClick={() => {
+                            setOrderSuccessId(null);
+                            setIsCheckoutStep(false);
+                            setCustomerName('');
+                            setCustomerPhone('');
+                            setCustomerAddress('');
+                            setIsCartOpen(false);
+                          }}
+                          className="w-full py-2.5 text-stone-400 hover:text-stone-600 text-[10px] uppercase tracking-wider font-semibold"
+                        >
+                          Continue Shopping
+                        </button>
+                      </div>
+                    </div>
+                  ) : isCheckoutStep ? (
+                    /* Checkout Form View */
+                    (() => {
+                      const isNameValid = customerName.trim().length >= 3;
+                      const isPhoneValid = customerPhone.replace(/[^0-9]/g, '').length === 10;
+                      const isAddressValid = customerAddress.trim().length >= 3;
+
+                      return (
+                        <form 
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!isNameValid || !isPhoneValid || !isAddressValid) {
+                              setFormError('Please fill in all information correctly. (Name >= 3 chars, Phone = 10 digits, Address >= 3 chars)');
+                              return;
+                            }
+                            await handlePlaceOrder(e);
+                          }} 
+                          className="space-y-4"
+                        >
+                          <div className="flex items-center gap-2 text-stone-500 mb-4 cursor-pointer text-xs uppercase font-bold tracking-wider" onClick={() => setIsCheckoutStep(false)}>
+                            <ArrowLeft className="w-4 h-4" /> back to cart
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between items-center mb-1.5">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                                Customer Name <span className="text-red-500">*</span>
+                              </label>
+                              {customerName.trim().length > 0 && (
+                                <span className={`text-[9px] font-bold uppercase tracking-wider ${isNameValid ? 'text-emerald-600' : 'text-amber-500'}`}>
+                                  {isNameValid ? 'Valid' : 'Min 3 characters required'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. Riya Sharma"
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className={`w-full pl-10 pr-10 py-2.5 bg-stone-50 border rounded-none focus:outline-none text-xs text-stone-900 font-medium transition-all ${
+                                  customerName.trim().length === 0 ? 'border-stone-200/85 focus:border-stone-950' :
+                                  isNameValid ? 'border-emerald-500/80 focus:border-emerald-600' : 'border-amber-500/80 focus:border-amber-600'
+                                }`}
+                              />
+                              {isNameValid && (
+                                <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600 animate-pulse" />
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between items-center mb-1.5">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                                WhatsApp Number <span className="text-red-500">*</span>
+                              </label>
+                              {customerPhone.trim().length > 0 && (
+                                <span className={`text-[9px] font-bold uppercase tracking-wider ${isPhoneValid ? 'text-emerald-600' : 'text-amber-500'}`}>
+                                  {isPhoneValid ? 'Valid' : '10 digits required'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                              <input
+                                type="tel"
+                                required
+                                placeholder="e.g. 9876543210"
+                                value={customerPhone}
+                                onChange={(e) => {
+                                  // Allow only digits
+                                  const val = e.target.value.replace(/[^0-9]/g, '');
+                                  if (val.length <= 10) {
+                                    setCustomerPhone(val);
+                                  }
+                                }}
+                                className={`w-full pl-10 pr-10 py-2.5 bg-stone-50 border rounded-none focus:outline-none text-xs text-stone-900 font-medium font-mono transition-all ${
+                                  customerPhone.trim().length === 0 ? 'border-stone-200/85 focus:border-stone-950' :
+                                  isPhoneValid ? 'border-emerald-500/80 focus:border-emerald-600' : 'border-amber-500/80 focus:border-amber-600'
+                                }`}
+                              />
+                              {isPhoneValid && (
+                                <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600 animate-pulse" />
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between items-center mb-1.5">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                                Delivery Address <span className="text-red-500">*</span>
+                              </label>
+                              {customerAddress.trim().length > 0 && (
+                                <span className={`text-[9px] font-bold uppercase tracking-wider ${isAddressValid ? 'text-emerald-600' : 'text-amber-500'}`}>
+                                  {isAddressValid ? 'Valid' : 'Min 3 characters'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="relative">
+                              <MapPin className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
+                              <textarea
+                                required
+                                rows={3}
+                                placeholder="House no., Street, City, Pincode"
+                                value={customerAddress}
+                                onChange={(e) => setCustomerAddress(e.target.value)}
+                                className={`w-full pl-10 pr-10 py-2.5 bg-stone-50 border rounded-none focus:outline-none text-xs text-stone-900 font-medium resize-none transition-all ${
+                                  customerAddress.trim().length === 0 ? 'border-stone-200/85 focus:border-stone-950' :
+                                  isAddressValid ? 'border-emerald-500/80 focus:border-emerald-600' : 'border-amber-500/80 focus:border-amber-600'
+                                }`}
+                              />
+                              {isAddressValid && (
+                                <Check className="absolute right-3 top-3 w-4 h-4 text-emerald-600 animate-pulse" />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Itemized Order Summary Detail */}
+                          <div className="border border-stone-200/80 p-3.5 bg-stone-50/50 space-y-2.5">
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-2">
+                              Order Summary
+                            </h4>
+                            <div className="max-h-[160px] overflow-y-auto divide-y divide-stone-100 pr-1">
+                              {cart.map((item) => {
+                                const currentPrice = item.product.sp !== undefined ? item.product.sp : (item.product.priceInINR || 0);
+                                const itemTotal = currentPrice * item.quantity;
+                                return (
+                                  <div key={item.product.id} className="flex justify-between items-start text-xs py-2 first:pt-0 last:pb-0">
+                                    <div className="space-y-0.5 max-w-[70%]">
+                                      <p className="font-bold text-[11px] text-stone-800 leading-snug">
+                                        {item.product.name}
+                                      </p>
+                                      <p className="text-[10px] text-stone-500 font-medium font-mono">
+                                        Qty: {item.quantity} × ₹{currentPrice.toLocaleString('en-IN')}
+                                      </p>
+                                    </div>
+                                    <span className="font-bold text-[11px] text-stone-900 font-mono shrink-0">
+                                      ₹{itemTotal.toLocaleString('en-IN')}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {formError && (
+                            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-[11px] font-bold uppercase tracking-wider rounded-sm">
+                              {formError}
+                            </div>
+                          )}
+
+                          <div className="bg-stone-50 p-4 border border-stone-100 mt-4 space-y-1.5">
+                            <div className="flex justify-between text-xs font-semibold text-stone-500">
+                              <span>Items Subtotal:</span>
+                              <span>₹{cartSubtotal.toLocaleString('en-IN')}</span>
+                            </div>
+                            <div className="flex justify-between text-xs font-semibold text-stone-500">
+                              <span>Shipping Charge:</span>
+                              <span className="text-emerald-600">FREE</span>
+                            </div>
+                            <div className="flex justify-between text-sm font-black text-stone-900 border-t border-stone-200/50 pt-2">
+                              <span>Grand Total:</span>
+                              <span>₹{cartSubtotal.toLocaleString('en-IN')}</span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={isPlacingOrder || !isNameValid || !isPhoneValid || !isAddressValid}
+                            className={`w-full py-3.5 font-extrabold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer ${
+                              isPlacingOrder ? 'bg-stone-400 text-stone-200 cursor-not-allowed' :
+                              (isNameValid && isPhoneValid && isAddressValid)
+                                ? 'bg-stone-900 hover:bg-stone-850 text-white hover:scale-[1.01] active:scale-[0.99]'
+                                : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300'
+                            }`}
+                          >
+                            {isPlacingOrder ? 'Booking Order...' : 'Book Order'}
+                          </button>
+                        </form>
+                      );
+                    })()
+                  ) : cart.length === 0 ? (
+                    /* Empty Cart State */
+                    <div className="text-center py-20 flex flex-col items-center justify-center h-full">
+                      <ShoppingBag className="w-12 h-12 text-stone-300 mb-4 animate-pulse" />
+                      <h4 className="text-sm font-bold uppercase tracking-widest text-stone-900 mb-1">Your Cart is Empty</h4>
+                      <p className="text-xs text-stone-400 font-medium max-w-[200px] leading-relaxed mx-auto">
+                        Add standard luxury cosmetics from our catalogue lookup to checkout items.
+                      </p>
+                    </div>
+                  ) : (
+                    /* Cart Items List */
+                    <div className="space-y-4">
+                      {cart.map((item) => {
+                        const itemPrice = item.product.sp !== undefined ? item.product.sp : (item.product.priceInINR || 0);
+                        return (
+                          <div 
+                            key={item.product.id}
+                            className="flex gap-3 pb-4 border-b border-stone-100"
+                          >
+                            <div className="w-16 h-16 bg-stone-50 border border-stone-200/50 flex items-center justify-center shrink-0 p-1">
+                              <img 
+                                src={item.product.image} 
+                                alt={item.product.name} 
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            
+                            <div className="flex-grow min-w-0 flex flex-col justify-between">
+                              <div>
+                                <h4 className="text-xs font-bold text-stone-900 truncate leading-snug">{item.product.name}</h4>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--theme-accent)] block mb-1">
+                                  {item.product.category}
+                                </span>
+                                {item.product.hasCustomQty && item.product.qtyVal && (
+                                  <span className="text-[10px] text-stone-400 font-medium block">
+                                    Spec: {item.product.qtyVal} {item.product.qtyUnit}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between mt-1.5">
+                                <span className="text-xs font-bold text-stone-950">
+                                  ₹{itemPrice.toLocaleString('en-IN')}
+                                </span>
+                                
+                                <div className="flex items-center gap-2">
+                                  {/* Quantity Increment/Decrement controls */}
+                                  <div className="flex items-center border border-stone-200 rounded-none bg-white">
+                                    <button
+                                      onClick={() => onUpdateCartQuantity(item.product.id, item.quantity - 1)}
+                                      className="p-1 text-stone-500 hover:bg-stone-50 transition-colors cursor-pointer"
+                                    >
+                                      {item.quantity === 1 ? <Trash2 className="w-3 h-3 text-red-500" /> : <Minus className="w-3 h-3" />}
+                                    </button>
+                                    <span className="px-2 text-[11px] font-black font-mono text-stone-900">
+                                      {item.quantity}
+                                    </span>
+                                    <button
+                                      onClick={() => onUpdateCartQuantity(item.product.id, item.quantity + 1)}
+                                      className="p-1 text-stone-500 hover:bg-stone-50 transition-colors cursor-pointer"
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </button>
+                                  </div>
+
+                                  {/* Dedicated Remove/Delete from Cart option */}
+                                  <button
+                                    onClick={() => onUpdateCartQuantity(item.product.id, 0)}
+                                    className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 border border-stone-100 hover:border-red-200 transition-all cursor-pointer"
+                                    title="Remove from Cart"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer calculations and submit buttons */}
+                {!orderSuccessId && cart.length > 0 && (
+                  <div className="p-5 border-t border-stone-100 bg-stone-50">
+                    {!isCheckoutStep ? (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-xs uppercase font-extrabold tracking-widest text-stone-500">Subtotal:</span>
+                          <span className="text-lg font-black text-stone-950">₹{cartSubtotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        <button
+                          onClick={() => setIsCheckoutStep(true)}
+                          className="w-full py-3.5 bg-stone-900 hover:bg-stone-850 text-white font-extrabold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm"
+                        >
+                          Proceed to Order <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Floating sticky checkout cart launcher in lower-right of viewport */}
+        {cart.length > 0 && !isCartOpen && (
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="fixed bottom-6 right-6 z-40 bg-[var(--theme-accent)] text-white p-4 rounded-full shadow-2xl hover:bg-[var(--theme-accent-hover)] transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center border border-white cursor-pointer"
+            id="floating-cart-launcher-btn"
+          >
+            <ShoppingBag className="w-6 h-6" />
+            <span className="absolute -top-1 -right-1 bg-stone-900 text-white font-mono text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border border-white">
+              {cart.reduce((a, c) => a + c.quantity, 0)}
+            </span>
+          </button>
         )}
 
       </div>

@@ -4,9 +4,11 @@ import {
   updateDoc, 
   deleteDoc, 
   doc, 
+  getDoc,
   onSnapshot, 
   query,
-  setDoc
+  setDoc,
+  writeBatch
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { Product } from './components/ProductCard';
@@ -334,3 +336,149 @@ export async function dbUpdateBanners(settings: SettingsConfig): Promise<void> {
     handleFirestoreError(error, OperationType.WRITE, `${SETTINGS_COLLECTION}/${BANNERS_DOC_NAME}`);
   }
 }
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  qtyVal?: number;
+  qtyUnit?: string;
+  orderedQty: number;
+}
+
+export interface Order {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'Pending' | 'Processing' | 'Dispatched' | 'Delivered' | 'Cancelled';
+  createdAt: string;
+}
+
+const ORDERS_COLLECTION = 'orders';
+
+// Subscribe to orders list in real-time
+export function subscribeToOrders(
+  onUpdate: (orders: Order[]) => void,
+  onError?: (error: Error) => void
+) {
+  try {
+    const ordersRef = collection(db, ORDERS_COLLECTION);
+    const q = query(ordersRef);
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const orderList: Order[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          orderList.push({
+            id: doc.id,
+            customerName: data.customerName || '',
+            customerPhone: data.customerPhone || '',
+            customerAddress: data.customerAddress || '',
+            items: Array.isArray(data.items) ? data.items : [],
+            totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : Number(data.totalAmount || 0),
+            status: data.status || 'Pending',
+            createdAt: data.createdAt || '',
+          });
+        });
+        // Sort orders by createdAt descending (newest first)
+        orderList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        onUpdate(orderList);
+      },
+      (error) => {
+        if (onError) {
+          onError(error);
+        } else {
+          handleFirestoreError(error, OperationType.LIST, ORDERS_COLLECTION);
+        }
+      }
+    );
+  } catch (err) {
+    handleFirestoreError(err, OperationType.LIST, ORDERS_COLLECTION);
+  }
+}
+
+// Add an order
+export async function dbAddOrder(newOrder: Omit<Order, 'id'>): Promise<string> {
+  try {
+    const docRef = await addDoc(collection(db, ORDERS_COLLECTION), {
+      customerName: newOrder.customerName,
+      customerPhone: newOrder.customerPhone,
+      customerAddress: newOrder.customerAddress,
+      items: newOrder.items,
+      totalAmount: Number(newOrder.totalAmount),
+      status: newOrder.status,
+      createdAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, ORDERS_COLLECTION);
+    return '';
+  }
+}
+
+// Update order status
+export async function dbUpdateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
+  const docPath = `${ORDERS_COLLECTION}/${orderId}`;
+  try {
+    const docRef = doc(db, ORDERS_COLLECTION, orderId);
+    await updateDoc(docRef, { status });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, docPath);
+  }
+}
+
+// Get single order for invoice page
+export async function dbGetOrder(orderId: string): Promise<Order | null> {
+  const docPath = `${ORDERS_COLLECTION}/${orderId}`;
+  try {
+    const docRef = doc(db, ORDERS_COLLECTION, orderId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return {
+        id: snap.id,
+        customerName: data.customerName || '',
+        customerPhone: data.customerPhone || '',
+        customerAddress: data.customerAddress || '',
+        items: Array.isArray(data.items) ? data.items : [],
+        totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : Number(data.totalAmount || 0),
+        status: data.status || 'Pending',
+        createdAt: data.createdAt || '',
+      };
+    }
+    return null;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, docPath);
+    return null;
+  }
+}
+
+// Delete a single order
+export async function dbDeleteOrder(orderId: string): Promise<void> {
+  const docPath = `${ORDERS_COLLECTION}/${orderId}`;
+  try {
+    const docRef = doc(db, ORDERS_COLLECTION, orderId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, docPath);
+  }
+}
+
+// Delete multiple orders in bulk
+export async function dbDeleteOrdersBulk(orderIds: string[]): Promise<void> {
+  try {
+    const batch = writeBatch(db);
+    orderIds.forEach(orderId => {
+      const docRef = doc(db, ORDERS_COLLECTION, orderId);
+      batch.delete(docRef);
+    });
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `bulk_delete/${orderIds.length}_items`);
+  }
+}
+

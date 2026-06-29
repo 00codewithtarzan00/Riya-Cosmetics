@@ -4,9 +4,9 @@ import {
   Lock, Eye, EyeOff, LayoutDashboard, Plus, Pencil, Trash2, 
   Settings, LogOut, Check, Info, Coins, BarChart3, Tag, Package,
   Upload, Image as ImageIcon, X, Sliders, Play, Trash, FileText, CheckCircle,
-  Brain, Cpu, Loader2, Sparkles, Zap
+  Brain, Cpu, Loader2, Sparkles, Zap, Phone, MapPin, MessageSquare, ExternalLink, Clock, Truck, User
 } from 'lucide-react';
-import { SettingsConfig, dbUpdateBanners } from '../firebaseService';
+import { SettingsConfig, dbUpdateBanners, subscribeToOrders, dbUpdateOrderStatus, Order, dbDeleteOrder, dbDeleteOrdersBulk } from '../firebaseService';
 
 interface AdminPortalProps {
   products: Product[];
@@ -29,8 +29,111 @@ export default function AdminPortal({
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // Active sub-dashboard tab: 'inventory' | 'settings'
-  const [activeTab, setActiveTab] = useState<'inventory' | 'settings'>('inventory');
+  // Active sub-dashboard tab: 'inventory' | 'orders' | 'settings'
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'settings'>('inventory');
+
+  // Real-time Orders Synchronization state
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState<boolean>(true);
+  const [orderSearchQuery, setOrderSearchQuery] = useState<string>('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
+  const [customMsgOrderId, setCustomMsgOrderId] = useState<string | null>(null);
+  const [customMsgText, setCustomMsgText] = useState<string>('');
+
+  // Selected orders for bulk operations
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+
+  // State for modern custom delete modals & notifications
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [ordersToBulkDelete, setOrdersToBulkDelete] = useState<string[] | null>(null);
+  const [adminNotification, setAdminNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  useEffect(() => {
+    if (adminNotification) {
+      const timer = setTimeout(() => {
+        setAdminNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [adminNotification]);
+
+  const handleToggleSelectOrder = (id: string) => {
+    setSelectedOrderIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleDeleteSingleOrder = (orderId: string) => {
+    setOrderToDelete(orderId);
+  };
+
+  const handleBulkDelete = (currentFilteredIds: string[]) => {
+    const idsToDelete = selectedOrderIds.filter(id => currentFilteredIds.includes(id));
+    if (idsToDelete.length === 0) {
+      setAdminNotification({
+        message: 'Please select orders to delete.',
+        type: 'info'
+      });
+      return;
+    }
+    setOrdersToBulkDelete(idsToDelete);
+  };
+
+  const confirmDeleteSingleOrder = async () => {
+    if (!orderToDelete) return;
+    try {
+      await dbDeleteOrder(orderToDelete);
+      setSelectedOrderIds(prev => prev.filter(id => id !== orderToDelete));
+      setAdminNotification({
+        message: 'Order deleted successfully!',
+        type: 'success'
+      });
+    } catch (err: any) {
+      console.error('Failed to delete order:', err);
+      setAdminNotification({
+        message: 'Failed to delete order: ' + (err.message || String(err)),
+        type: 'error'
+      });
+    } finally {
+      setOrderToDelete(null);
+    }
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!ordersToBulkDelete || ordersToBulkDelete.length === 0) return;
+    try {
+      await dbDeleteOrdersBulk(ordersToBulkDelete);
+      setSelectedOrderIds(prev => prev.filter(id => !ordersToBulkDelete.includes(id)));
+      setAdminNotification({
+        message: `Successfully deleted ${ordersToBulkDelete.length} orders!`,
+        type: 'success'
+      });
+    } catch (err: any) {
+      console.error('Bulk deletion failed:', err);
+      setAdminNotification({
+        message: 'Failed to bulk delete orders: ' + (err.message || String(err)),
+        type: 'error'
+      });
+    } finally {
+      setOrdersToBulkDelete(null);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const unsubscribe = subscribeToOrders((ordersList) => {
+        const sorted = (ordersList || []).sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setOrders(sorted);
+        setIsOrdersLoading(false);
+      }, (error) => {
+        console.error('Failed to subscribe to orders:', error);
+        setIsOrdersLoading(false);
+      });
+      return () => unsubscribe?.();
+    }
+  }, [isAuthenticated]);
 
   // Dynamic Banners Local States
   const [b1Type, setB1Type] = useState<'None' | 'Image' | 'Video' | 'Text'>('None');
@@ -1348,7 +1451,7 @@ export default function AdminPortal({
         </div>
 
         {/* Tab Selection Navigation */}
-        <div className="flex border-b border-[var(--theme-border)] mb-8 gap-6">
+        <div className="flex border-b border-[var(--theme-border)] mb-8 gap-6 flex-wrap">
           <button
             onClick={() => setActiveTab('inventory')}
             className={`pb-4 px-1 text-xs font-bold tracking-widest uppercase transition-all relative cursor-pointer ${
@@ -1360,6 +1463,20 @@ export default function AdminPortal({
             <div className="flex items-center gap-2">
               <Package className="w-3.5 h-3.5" />
               Formula Inventory ({products.length})
+            </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`pb-4 px-1 text-xs font-bold tracking-widest uppercase transition-all relative cursor-pointer ${
+              activeTab === 'orders' 
+                ? 'text-[var(--theme-text-primary)] border-b-2 border-[var(--theme-accent)] font-extrabold' 
+                : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-3.5 h-3.5 text-stone-700" />
+              Customer Orders ({orders.length})
             </div>
           </button>
           
@@ -1542,6 +1659,369 @@ export default function AdminPortal({
             )}
           </div>
         </div>
+        ) : activeTab === 'orders' ? (
+          /* Live Customer Order & Billing Management Panel */
+          <div className="space-y-6 animate-fadeIn" id="admin-orders-manager">
+            {/* Header info card */}
+            <div className="bg-[#FAF9F5] border border-[var(--theme-border)] p-5 flex items-start gap-4 shadow-xs select-none">
+              <Info className="w-5 h-5 text-[var(--theme-accent)] shrink-0 mt-0.5 animate-pulse" />
+              <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-[var(--theme-text-primary)]">Automated Order Booking & Billing Portal</p>
+                <p className="text-xs text-[var(--theme-text-secondary)] leading-relaxed font-semibold">
+                  Manage live customer orders received from the catalog checkout. Update delivery status dynamically in real-time, launch instant WhatsApp invoice/bill links, confirm orders, or broadcast custom notifications to customers directly from this panel.
+                </p>
+              </div>
+            </div>
+
+            {/* Filter and Search Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between bg-white border border-[var(--theme-border)] p-4 shadow-xs">
+              {/* Search Order Input */}
+              <div className="relative flex-grow max-w-md">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder="नाम या मोबाइल नंबर से खोजें... / Search name, phone, order id..."
+                  value={orderSearchQuery}
+                  onChange={(e) => setOrderSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 focus:outline-none focus:border-stone-900 text-xs font-medium text-stone-900 rounded-none"
+                />
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex gap-2 items-center flex-wrap">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Status:</span>
+                {['All', 'Pending', 'Processing', 'Dispatched', 'Delivered', 'Cancelled'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setOrderStatusFilter(status)}
+                    className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest border transition-all cursor-pointer ${
+                      orderStatusFilter === status
+                        ? 'bg-stone-900 border-stone-900 text-white font-black'
+                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-400'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Orders Render Block */}
+            {isOrdersLoading ? (
+              <div className="py-20 text-center flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-8 h-8 text-[var(--theme-accent)] animate-spin" />
+                <span className="text-xs uppercase font-bold tracking-widest text-stone-400 font-mono">Connecting to live orders database...</span>
+              </div>
+            ) : (() => {
+              // Apply Filters
+              const filteredOrders = orders.filter(order => {
+                const search = orderSearchQuery.toLowerCase().trim();
+                const matchesSearch = !search ||
+                  order.id.toLowerCase().includes(search) ||
+                  order.customerName.toLowerCase().includes(search) ||
+                  order.customerPhone.includes(search) ||
+                  order.customerAddress.toLowerCase().includes(search);
+                
+                const matchesStatus = orderStatusFilter === 'All' || order.status === orderStatusFilter;
+                return matchesSearch && matchesStatus;
+              });
+
+              if (filteredOrders.length === 0) {
+                return (
+                  <div className="py-20 text-center border border-[var(--theme-border)] bg-white">
+                    <Clock className="w-10 h-10 text-stone-300 mx-auto mb-4 animate-pulse" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-stone-900 mb-1">No Orders Found</h3>
+                    <p className="text-xs text-stone-400 font-medium">
+                      There are no registered customer orders matching this status or search criteria.
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-6">
+                  {/* Bulk operations and select-all bar */}
+                  <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center bg-white border border-[var(--theme-border)] p-4 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.includes(o.id))}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const idsToAdd = filteredOrders.map(o => o.id);
+                            setSelectedOrderIds(prev => Array.from(new Set([...prev, ...idsToAdd])));
+                          } else {
+                            const idsToRemove = filteredOrders.map(o => o.id);
+                            setSelectedOrderIds(prev => prev.filter(id => !idsToRemove.includes(id)));
+                          }
+                        }}
+                        className="w-4 h-4 border-stone-300 rounded text-stone-900 focus:ring-stone-500 cursor-pointer"
+                        id="select-all-orders-checkbox"
+                      />
+                      <label htmlFor="select-all-orders-checkbox" className="text-xs font-bold text-stone-700 cursor-pointer select-none">
+                        Select All ({filteredOrders.length} Orders)
+                      </label>
+                    </div>
+
+                    {selectedOrderIds.length > 0 && (
+                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                        <span className="text-xs font-semibold text-stone-600 font-mono">
+                          {selectedOrderIds.filter(id => filteredOrders.some(o => o.id === id)).length} Selected
+                        </span>
+                        <button
+                          onClick={() => handleBulkDelete(filteredOrders.map(o => o.id))}
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          चुने हुए डिलीट करें / Delete Selected
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {filteredOrders.map((order) => {
+                    const statusColors: Record<string, string> = {
+                      Pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                      Processing: 'bg-blue-50 text-blue-700 border-blue-200',
+                      Dispatched: 'bg-purple-50 text-purple-700 border-purple-200',
+                      Delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                      Cancelled: 'bg-red-50 text-red-700 border-red-200'
+                    };
+
+                    const dateObj = new Date(order.createdAt);
+                    const formattedDate = isNaN(dateObj.getTime()) 
+                      ? 'N/A' 
+                      : dateObj.toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        }) + ' ' + dateObj.toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+
+                    return (
+                      <div 
+                        key={order.id}
+                        className="bg-white border border-[var(--theme-border)] p-5 md:p-6 shadow-xs space-y-4"
+                        id={`admin-order-card-${order.id}`}
+                      >
+                        {/* Header bar of order card */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-stone-100 pb-4 gap-3">
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedOrderIds.includes(order.id)}
+                              onChange={() => handleToggleSelectOrder(order.id)}
+                              className="w-4 h-4 mt-1 border-stone-300 rounded text-stone-900 focus:ring-stone-500 cursor-pointer shrink-0"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono uppercase tracking-widest text-stone-400 font-bold">Order ID:</span>
+                                <span className="text-xs font-mono font-bold text-stone-900 bg-stone-100 px-2 py-0.5 select-all">{order.id}</span>
+                              </div>
+                              <div className="text-[10px] text-stone-500 font-medium flex items-center gap-1.5 mt-1 font-mono">
+                                <Clock className="w-3 h-3 text-stone-400" /> {formattedDate}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className={`px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest border rounded-xs ${statusColors[order.status] || 'bg-stone-50 text-stone-600 border-stone-200'}`}>
+                              {order.status}
+                            </span>
+                            
+                            <a 
+                              href={`#/invoice/${order.id}`}
+                              target="_blank"
+                              className="text-[10px] uppercase font-bold tracking-widest text-[var(--theme-accent)] hover:text-stone-900 transition-colors flex items-center gap-1 border border-[var(--theme-accent)]/20 px-2.5 py-1"
+                            >
+                              <ExternalLink className="w-3 h-3" /> View Bill
+                            </a>
+
+                            <button
+                              onClick={() => handleDeleteSingleOrder(order.id)}
+                              className="text-[10px] uppercase font-bold tracking-widest text-red-600 hover:text-white hover:bg-red-600 transition-colors flex items-center gap-1 border border-red-200 hover:border-red-600 px-2.5 py-1 cursor-pointer"
+                              title="Delete Order"
+                            >
+                              <Trash2 className="w-3 h-3" /> Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Middle panel of order card: client and breakdown */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                          
+                          {/* Left Column: Customer details */}
+                          <div className="space-y-3">
+                            <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400 border-b border-stone-100 pb-1.5">Customer Information</h4>
+                            <div className="space-y-2 text-xs">
+                              <div className="flex items-start gap-2 text-stone-800">
+                                <User className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+                                <div>
+                                  <span className="font-bold">{order.customerName}</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start gap-2 text-stone-800">
+                                <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+                                <div className="font-mono">
+                                  <a href={`tel:${order.customerPhone}`} className="hover:underline">{order.customerPhone}</a>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start gap-2 text-stone-800">
+                                <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+                                <p className="leading-relaxed font-medium">{order.customerAddress}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column: Ordered items summary */}
+                          <div className="space-y-3">
+                            <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400 border-b border-stone-100 pb-1.5">Ordered Items</h4>
+                            <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2">
+                              {order.items.map((item, idx) => {
+                                const specStr = item.qtyVal ? ` (${item.qtyVal} ${item.qtyUnit})` : '';
+                                return (
+                                  <div key={idx} className="flex justify-between items-start text-xs border-b border-stone-100/50 pb-1.5 gap-2">
+                                    <div>
+                                      <span className="font-bold text-stone-800">{item.name}</span>
+                                      <span className="text-[10px] text-stone-400 block">{item.orderedQty} x ₹{item.price.toLocaleString('en-IN')}{specStr}</span>
+                                    </div>
+                                    <span className="font-bold text-stone-900 shrink-0 font-mono">₹{(item.orderedQty * item.price).toLocaleString('en-IN')}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            <div className="flex justify-between items-center bg-stone-50 p-2.5 border border-stone-100 mt-2">
+                              <span className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Total Bill Amount:</span>
+                              <span className="text-sm font-black text-stone-900 font-mono">₹{order.totalAmount.toLocaleString('en-IN')}</span>
+                            </div>
+                          </div>
+
+                        </div>
+
+                        {/* Controls Panel (Action Row) */}
+                        <div className="bg-stone-50/70 p-4 border border-stone-200/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-2">
+                          
+                          {/* Left: Change status */}
+                          <div className="flex items-center gap-2.5 w-full md:w-auto">
+                            <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 shrink-0">Update Status:</span>
+                            <select
+                              value={order.status}
+                              onChange={(e) => dbUpdateOrderStatus(order.id, e.target.value as any)}
+                              className="bg-white border border-stone-300 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-stone-800 rounded-none focus:outline-none focus:border-stone-900"
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="Processing">Processing</option>
+                              <option value="Dispatched">Dispatched</option>
+                              <option value="Delivered">Delivered</option>
+                              <option value="Cancelled">Cancelled</option>
+                            </select>
+                          </div>
+
+                          {/* Right: WhatsApp broadcasting triggers */}
+                          <div className="flex flex-wrap gap-2 items-center w-full md:w-auto justify-end">
+                            <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 mr-1 w-full md:w-auto text-left md:text-right">WhatsApp Alerts:</span>
+                            
+                            {/* Send Bill Trigger */}
+                            <button
+                              onClick={() => {
+                                const invoiceLink = `${window.location.origin}/#/invoice/${order.id}`;
+                                const msg = `Hello ${order.customerName}, your digital invoice from Riya Cosmetics is ready. Total amount: *₹${order.totalAmount}*.\n\nView your invoice here:\n${invoiceLink}\n\nThank you! 🙏✨`;
+                                window.open(`https://wa.me/91${order.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                              }}
+                              className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 hover:text-stone-900 transition-all cursor-pointer"
+                              title="Send Digital Invoice link to customer"
+                            >
+                              Send Bill 📄
+                            </button>
+
+                            {/* WhatsApp Received Trigger */}
+                            <button
+                              onClick={() => {
+                                const msg = `Hello ${order.customerName}, your order (ID: ${order.id}) has been successfully registered at Riya Cosmetics. Total amount: *₹${order.totalAmount}*.\n\nWe will prepare and update you soon. Thank you for shopping! 🛍️💖`;
+                                window.open(`https://wa.me/91${order.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                              }}
+                              className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 hover:text-stone-900 transition-all cursor-pointer"
+                              title="Confirm order receipt"
+                            >
+                              Received 🛒
+                            </button>
+
+                            {/* WhatsApp Delivered Trigger */}
+                            <button
+                              onClick={() => {
+                                const msg = `Hello ${order.customerName}, your order (ID: ${order.id}) has been successfully delivered. 🎉✨\n\nHope you love our products. Please share your valuable feedback!\n\nWarm regards, Riya Cosmetics! 💄💅`;
+                                window.open(`https://wa.me/91${order.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                              }}
+                              className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 hover:text-stone-900 transition-all cursor-pointer"
+                              title="Broadcast delivery confirmation"
+                            >
+                              Delivered 📦
+                            </button>
+
+                            {/* Custom Message Dialog box trigger */}
+                            <button
+                              onClick={() => {
+                                setCustomMsgOrderId(order.id);
+                                setCustomMsgText('');
+                              }}
+                              className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white transition-all cursor-pointer"
+                              title="Open custom chat composer"
+                            >
+                              Custom 💬
+                            </button>
+                          </div>
+
+                        </div>
+
+                        {/* Custom Dialog Input Inline Drawer */}
+                        {customMsgOrderId === order.id && (
+                          <div className="bg-stone-50 border border-stone-200 p-4 space-y-3 animate-fadeIn">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Compose Custom WhatsApp Message</span>
+                              <button onClick={() => setCustomMsgOrderId(null)} className="p-1 text-stone-400 hover:text-stone-700">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={customMsgText}
+                              onChange={(e) => setCustomMsgText(e.target.value)}
+                              placeholder="e.g. Your order has been packed and will be shipped tomorrow morning..."
+                              className="w-full border border-stone-300 p-2.5 text-xs text-stone-900 bg-white focus:outline-none focus:border-stone-900 font-medium resize-none rounded-none"
+                            />
+                            <div className="flex justify-end gap-2.5">
+                              <button
+                                onClick={() => setCustomMsgOrderId(null)}
+                                className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest border border-stone-300 text-stone-600 hover:bg-stone-100"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (!customMsgText.trim()) return;
+                                  window.open(`https://wa.me/91${order.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(customMsgText.trim())}`, '_blank');
+                                  setCustomMsgOrderId(null);
+                                }}
+                                className="px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-widest bg-stone-900 text-white hover:bg-stone-850"
+                              >
+                                Broadcast Chat 🚀
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
         ) : (
           /* Beautiful Interactive Settings Manager Dashboard */
           <div className="space-y-8 animate-fadeIn" id="admin-settings-manager">
@@ -3061,6 +3541,108 @@ export default function AdminPortal({
                 </span>
                 <span>Do not close this panel</span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modern Single Order Delete Confirmation Dialog Modal */}
+        {orderToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
+            <div className="bg-white border border-[var(--theme-border)] max-w-md w-full p-6 shadow-2xl relative space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-50 text-red-600 rounded-none border border-red-100 shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">
+                    Delete Order?
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-1 font-semibold leading-relaxed">
+                    Are you sure you want to delete order <span className="font-mono bg-stone-100 text-stone-900 px-1.5 py-0.5 text-[10px] font-bold select-all">{orderToDelete}</span>? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setOrderToDelete(null)}
+                  className="w-1/2 py-2.5 bg-stone-100 text-stone-700 font-bold text-[10px] uppercase tracking-wider hover:bg-stone-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteSingleOrder}
+                  className="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase tracking-wider shadow-md transition-colors cursor-pointer"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modern Bulk Orders Delete Confirmation Dialog Modal */}
+        {ordersToBulkDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
+            <div className="bg-white border border-[var(--theme-border)] max-w-md w-full p-6 shadow-2xl relative space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-50 text-red-600 rounded-none border border-red-100 shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">
+                    Bulk Delete Orders?
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-1 font-semibold leading-relaxed">
+                    Are you sure you want to delete the selected <strong className="text-red-600">{ordersToBulkDelete.length}</strong> orders? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setOrdersToBulkDelete(null)}
+                  className="w-1/2 py-2.5 bg-stone-100 text-stone-700 font-bold text-[10px] uppercase tracking-wider hover:bg-stone-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmBulkDelete}
+                  className="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase tracking-wider shadow-md transition-colors cursor-pointer"
+                >
+                  Delete All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Interactive Toast Notification banner */}
+        {adminNotification && (
+          <div className="fixed bottom-6 right-6 z-55 max-w-md w-full sm:w-auto animate-fade-in">
+            <div className={`p-4 shadow-2xl border flex items-center gap-3 bg-white ${
+              adminNotification.type === 'success' ? 'border-emerald-500 text-emerald-800' :
+              adminNotification.type === 'error' ? 'border-red-500 text-red-800' : 'border-stone-500 text-stone-800'
+            }`}>
+              <div className={`p-1 shrink-0 ${
+                adminNotification.type === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                adminNotification.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-stone-50 text-stone-600'
+              }`}>
+                {adminNotification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
+              </div>
+              <p className="text-xs font-bold leading-normal font-sans">
+                {adminNotification.message}
+              </p>
+              <button 
+                onClick={() => setAdminNotification(null)}
+                className="ml-auto text-stone-400 hover:text-stone-700 text-xs font-bold font-mono pl-2 cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
           </div>
         )}

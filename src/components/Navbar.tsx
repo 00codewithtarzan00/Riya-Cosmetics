@@ -1,11 +1,13 @@
-import {Compass, Shield, ArrowLeft, Layers} from 'lucide-react';
+import {Compass, Shield, ArrowLeft, Layers, ShoppingBag} from 'lucide-react';
 
 interface NavbarProps {
-  currentView: 'catalog' | 'admin';
-  setView: (view: 'catalog' | 'admin') => void;
+  currentView: 'catalog' | 'admin' | 'invoice';
+  setView: (view: 'catalog' | 'admin' | 'invoice') => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
   onNavigateToCatalog: () => void;
+  cartCount?: number;
+  onOpenCart?: () => void;
 }
 
 export default function Navbar({
@@ -14,6 +16,8 @@ export default function Navbar({
   selectedCategory,
   setSelectedCategory,
   onNavigateToCatalog,
+  cartCount = 0,
+  onOpenCart,
 }: NavbarProps) {
 
   return (
@@ -44,7 +48,7 @@ export default function Navbar({
         </button>
 
         {/* Action Button: Admin Portal Toggle */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {currentView === 'catalog' ? (
             <button
               id="admin-portal-open-btn"

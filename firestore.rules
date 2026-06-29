@@ -36,6 +36,16 @@ service cloud.firestore {
       return isValidBanner(data.banner1) && isValidBanner(data.banner2);
     }
 
+    function isValidOrder(data) {
+      return data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 200 &&
+             data.customerPhone is string && data.customerPhone.size() > 0 && data.customerPhone.size() <= 30 &&
+             data.customerAddress is string && data.customerAddress.size() > 0 && data.customerAddress.size() <= 1000 &&
+             data.items is list &&
+             (data.totalAmount is int || data.totalAmount is float || data.totalAmount is number) && data.totalAmount >= 0 &&
+             data.status is string && (data.status == 'Pending' || data.status == 'Processing' || data.status == 'Dispatched' || data.status == 'Delivered' || data.status == 'Cancelled') &&
+             data.createdAt is string;
+    }
+
     // Products Collection Rules
     match /products/{productId} {
       allow read: if true;
@@ -47,6 +57,12 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if true;
       allow write: if isValidSetting(request.resource.data);
+    }
+
+    // Orders Collection Rules
+    match /orders/{orderId} {
+      allow read, delete: if true;
+      allow create, update: if isValidOrder(request.resource.data);
     }
   }
 }
