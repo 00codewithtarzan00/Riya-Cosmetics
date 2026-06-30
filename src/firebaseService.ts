@@ -404,7 +404,14 @@ export function subscribeToOrders(
 // Add an order
 export async function dbAddOrder(newOrder: Omit<Order, 'id'>): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, ORDERS_COLLECTION), {
+    // Generate a 6-character uppercase alphanumeric ID
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let orderId = '';
+    for (let i = 0; i < 6; i++) {
+      orderId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    await setDoc(doc(db, ORDERS_COLLECTION, orderId), {
       customerName: newOrder.customerName,
       customerPhone: newOrder.customerPhone,
       customerAddress: newOrder.customerAddress,
@@ -413,7 +420,7 @@ export async function dbAddOrder(newOrder: Omit<Order, 'id'>): Promise<string> {
       status: newOrder.status,
       createdAt: new Date().toISOString()
     });
-    return docRef.id;
+    return orderId;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, ORDERS_COLLECTION);
     return '';

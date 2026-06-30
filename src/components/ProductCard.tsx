@@ -1,5 +1,5 @@
 import {Eye, Plus, ShoppingBag} from 'lucide-react';
-import {useState} from 'react';
+import {useState, useEffect, useRef} from 'react';
 
 export interface Product {
   id: string | number;
@@ -53,6 +53,31 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
   const discountPercent = (mrpVal > 0 && mrpVal > spVal) ? Math.round(((mrpVal - spVal) / mrpVal) * 100) : 0;
   
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '100px', // start loading slightly before entering viewport
+        threshold: 0.01,
+      }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const getQtyAndSpecs = () => {
     if (product.hasCustomQty && product.qtyVal !== undefined) {
@@ -63,23 +88,32 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
 
   return (
     <div 
+      ref={cardRef}
       id={`product-card-${product.id}`}
       onClick={() => onViewDetails(product)}
       className="editorial-card fade-in group relative bg-white border border-[var(--theme-border)]/70 rounded-[2px] overflow-hidden transition-all duration-300 hover:border-[var(--theme-accent)] hover:shadow-sm flex flex-col justify-between cursor-pointer"
     >
       {/* Upper Media Section */}
       <div className="relative overflow-hidden aspect-square bg-stone-50 flex items-center justify-center border-b border-[var(--theme-border)]/40">
-        <img 
-          src={product.image} 
-          alt={product.name}
-          onLoad={() => setImageLoaded(true)}
-          className={`w-full h-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-105 ${
-            imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-          }`}
-          loading="lazy"
-        />
-        {/* Elegant Shimmer Skeleton Overlay when loading */}
-        {!imageLoaded && (
+        {isInView ? (
+          <>
+            <img 
+              src={product.image} 
+              alt={product.name}
+              onLoad={() => setImageLoaded(true)}
+              className={`w-full h-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-105 ${
+                imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+              loading="lazy"
+            />
+            {/* Elegant Shimmer Skeleton Overlay when loading */}
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-stone-100 animate-pulse flex items-center justify-center">
+                <span className="text-[9px] uppercase tracking-widest text-stone-400 font-mono">Formula loading...</span>
+              </div>
+            )}
+          </>
+        ) : (
           <div className="absolute inset-0 bg-stone-100 animate-pulse flex items-center justify-center">
             <span className="text-[9px] uppercase tracking-widest text-stone-400 font-mono">Formula loading...</span>
           </div>

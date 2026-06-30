@@ -277,6 +277,13 @@ export default function ProductCatalog({
     setIsLoadingMore(false);
   }, [selectedCategory, searchQuery, sortBy]);
 
+  // Reset checkout step to false whenever the cart drawer opens
+  useEffect(() => {
+    if (isCartOpen) {
+      setIsCheckoutStep(false);
+    }
+  }, [isCartOpen]);
+
   // Infinite Scroll dynamic triggers
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -626,16 +633,28 @@ export default function ProductCatalog({
                   {/* Modal Add to Cart Integration Section */}
                   <div className="mt-8 pt-6 border-t border-[var(--theme-border)]/60">
                     {selectedProduct.inStock !== false ? (
-                      <button
-                        id="modal-add-to-cart-btn"
-                        onClick={() => {
-                          onAddToCart(selectedProduct);
-                          setSelectedProduct(null); // auto close modal on add to prevent overlay clashing
-                        }}
-                        className="w-full py-3 bg-stone-900 text-white font-bold text-xs tracking-widest uppercase hover:bg-[var(--theme-accent)] transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" /> Add to Cart (₹{(selectedProduct.sp || selectedProduct.priceInINR || 0).toLocaleString('en-IN')})
-                      </button>
+                      (() => {
+                        const inCart = cart.find(item => item.product.id === selectedProduct.id);
+                        if (inCart) {
+                          return (
+                            <div className="text-center py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 animate-fade-in">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-bounce" />
+                              Added to Cart
+                            </div>
+                          );
+                        }
+                        return (
+                          <button
+                            id="modal-add-to-cart-btn"
+                            onClick={() => {
+                              onAddToCart(selectedProduct);
+                            }}
+                            className="w-full py-3 bg-[#ff0052] text-white font-bold text-xs tracking-widest uppercase hover:bg-[#ff0052]/90 transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer"
+                          >
+                            <Plus className="w-4 h-4" /> Add to Cart (₹{(selectedProduct.sp || selectedProduct.priceInINR || 0).toLocaleString('en-IN')})
+                          </button>
+                        );
+                      })()
                     ) : (
                       <div className="text-center py-2.5 bg-red-50 border border-red-100 text-red-600 text-xs font-bold uppercase tracking-wider">
                         Out of Stock / अनुपलब्ध
@@ -849,13 +868,9 @@ export default function ProductCatalog({
                           }} 
                           className="space-y-4"
                         >
-                          <div className="flex items-center gap-2 text-stone-500 mb-4 cursor-pointer text-xs uppercase font-bold tracking-wider" onClick={() => setIsCheckoutStep(false)}>
-                            <ArrowLeft className="w-4 h-4" /> back to cart
-                          </div>
-
                           <div>
                             <div className="flex justify-between items-center mb-1.5">
-                              <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest text-[#282828]">
                                 Customer Name <span className="text-red-500">*</span>
                               </label>
                               {customerName.trim().length > 0 && (
@@ -885,7 +900,7 @@ export default function ProductCatalog({
 
                           <div>
                             <div className="flex justify-between items-center mb-1.5">
-                              <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest text-[#282828]">
                                 WhatsApp Number <span className="text-red-500">*</span>
                               </label>
                               {customerPhone.trim().length > 0 && (
@@ -921,7 +936,7 @@ export default function ProductCatalog({
 
                           <div>
                             <div className="flex justify-between items-center mb-1.5">
-                              <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest text-[#282828]">
                                 Delivery Address <span className="text-red-500">*</span>
                               </label>
                               {customerAddress.trim().length > 0 && (
@@ -951,7 +966,7 @@ export default function ProductCatalog({
 
                           {/* Itemized Order Summary Detail */}
                           <div className="border border-stone-200/80 p-3.5 bg-stone-50/50 space-y-2.5">
-                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-2">
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#282828] border-b border-stone-200 pb-2">
                               Order Summary
                             </h4>
                             <div className="max-h-[160px] overflow-y-auto divide-y divide-stone-100 pr-1">
@@ -961,10 +976,10 @@ export default function ProductCatalog({
                                 return (
                                   <div key={item.product.id} className="flex justify-between items-start text-xs py-2 first:pt-0 last:pb-0">
                                     <div className="space-y-0.5 max-w-[70%]">
-                                      <p className="font-bold text-[11px] text-stone-800 leading-snug">
+                                      <p className="font-bold text-[11px] text-black leading-snug">
                                         {item.product.name}
                                       </p>
-                                      <p className="text-[10px] text-stone-500 font-medium font-mono">
+                                      <p className="text-[10px] text-black font-medium font-mono">
                                         Qty: {item.quantity} × ₹{currentPrice.toLocaleString('en-IN')}
                                       </p>
                                     </div>
@@ -993,23 +1008,32 @@ export default function ProductCatalog({
                               <span className="text-emerald-600">FREE</span>
                             </div>
                             <div className="flex justify-between text-sm font-black text-stone-900 border-t border-stone-200/50 pt-2">
-                              <span>Grand Total:</span>
+                              <span className="text-black">Grand Total:</span>
                               <span>₹{cartSubtotal.toLocaleString('en-IN')}</span>
                             </div>
                           </div>
 
-                          <button
-                            type="submit"
-                            disabled={isPlacingOrder || !isNameValid || !isPhoneValid || !isAddressValid}
-                            className={`w-full py-3.5 font-extrabold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer ${
-                              isPlacingOrder ? 'bg-stone-400 text-stone-200 cursor-not-allowed' :
-                              (isNameValid && isPhoneValid && isAddressValid)
-                                ? 'bg-stone-900 hover:bg-stone-850 text-white hover:scale-[1.01] active:scale-[0.99]'
-                                : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300'
-                            }`}
-                          >
-                            {isPlacingOrder ? 'Booking Order...' : 'Book Order'}
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsCheckoutStep(false)}
+                              className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer"
+                            >
+                              Back to Cart
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isPlacingOrder || !isNameValid || !isPhoneValid || !isAddressValid}
+                              className={`w-1/2 py-3.5 font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer ${
+                                isPlacingOrder ? 'bg-stone-400 text-stone-200 cursor-not-allowed' :
+                                (isNameValid && isPhoneValid && isAddressValid)
+                                  ? 'bg-[#ff0052] hover:bg-[#ff0052]/90 text-white hover:scale-[1.01] active:scale-[0.99]'
+                                  : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300'
+                              }`}
+                            >
+                              {isPlacingOrder ? 'Booking...' : 'Book Order'}
+                            </button>
+                          </div>
                         </form>
                       );
                     })()
@@ -1105,12 +1129,20 @@ export default function ProductCatalog({
                           <span className="text-xs uppercase font-extrabold tracking-widest text-stone-500">Subtotal:</span>
                           <span className="text-lg font-black text-stone-950">₹{cartSubtotal.toLocaleString('en-IN')}</span>
                         </div>
-                        <button
-                          onClick={() => setIsCheckoutStep(true)}
-                          className="w-full py-3.5 bg-stone-900 hover:bg-stone-850 text-white font-extrabold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm"
-                        >
-                          Proceed to Order <ArrowRight className="w-4 h-4" />
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setIsCartOpen(false)}
+                            className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer"
+                          >
+                            Continue Shopping
+                          </button>
+                          <button
+                            onClick={() => setIsCheckoutStep(true)}
+                            className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm"
+                          >
+                            Proceed to Order <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
                       </>
                     ) : null}
                   </div>
