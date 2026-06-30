@@ -152,36 +152,36 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
       </div>
 
       {/* Lower Text & Price Section */}
-      <div className="p-3 md:p-3.5 flex flex-col flex-grow justify-between min-h-0 md:min-h-[145px] bg-white text-left font-sans">
+      <div className="p-2 md:p-3 flex flex-col flex-grow justify-between min-h-0 md:min-h-[120px] bg-white text-left font-sans">
         <div className="space-y-0.5 mb-1">
           {/* Category Line */}
           <div className="truncate">
-            <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold text-[var(--theme-accent)]">
+            <span className="text-[8px] sm:text-[9px] uppercase tracking-wider font-semibold text-[var(--theme-accent)]">
               {product.category}
             </span>
           </div>
           
           {/* Product Title (Name) */}
-          <h3 className="text-sm md:text-base font-medium text-[var(--theme-text-primary)] tracking-tight leading-tight line-clamp-2 mb-0.5 group-hover:text-[var(--theme-accent)] transition-colors duration-300">
+          <h3 className="text-xs md:text-sm font-medium text-[var(--theme-text-primary)] tracking-tight leading-tight line-clamp-2 mb-0.5 group-hover:text-[var(--theme-accent)] transition-colors duration-300">
             {product.name}
           </h3>
 
           {/* Quantity Badge Line */}
           {getQtyAndSpecs() && (
-            <div className="text-[10px] sm:text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap mb-1">
+            <div className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] font-medium whitespace-nowrap mb-1">
               {getQtyAndSpecs()}
             </div>
           )}
         </div>
 
         {/* Footer Panel (Prices) */}
-        <div className="mt-auto pt-1.5 flex items-center justify-between gap-2 border-t border-[var(--theme-border)]/40">
+        <div className="mt-auto pt-1 flex items-center justify-between gap-2 border-t border-[var(--theme-border)]/40">
           <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-lg md:text-xl font-bold text-[var(--theme-text-primary)] tracking-tight">
+            <span className="text-base md:text-lg font-bold text-[var(--theme-text-primary)] tracking-tight">
               ₹{spVal.toLocaleString('en-IN')}
             </span>
             {discountPercent > 0 && (
-              <span className="text-xs text-[var(--theme-text-muted)] line-through decoration-red-500/30">
+              <span className="text-[10px] text-[var(--theme-text-muted)] line-through decoration-red-500/30">
                 ₹{mrpVal.toLocaleString('en-IN')}
               </span>
             )}
@@ -197,7 +197,7 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
                   onAddToCart(product, e);
                 }
               }}
-              className={`px-2.5 py-1.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-1 rounded-none cursor-pointer ${
+              className={`px-2 py-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-1 rounded-none cursor-pointer ${
                 product.inStock !== false
                   ? 'bg-[#ff0052] border-[#ff0052] text-white hover:bg-stone-900 hover:border-stone-900'
                   : 'bg-stone-50 border-stone-200 text-stone-400 cursor-not-allowed'
@@ -205,9 +205,6 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
             >
               <Plus className="w-3 h-3 shrink-0" />
               <span className="hidden sm:inline">
-                {product.inStock !== false ? 'Add to Cart' : 'Out of Stock'}
-              </span>
-              <span className="inline sm:hidden">
                 {product.inStock !== false ? 'Add' : 'Out'}
               </span>
             </button>
