@@ -133,7 +133,7 @@ export default function Navbar({
                 <button
                   id="navbar-google-login-btn"
                   onClick={onLogin}
-                  className="flex items-center gap-2.5 px-4 py-2 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
+                  className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
                 >
                   <div className="w-[18px] h-[18px] bg-white rounded-full flex items-center justify-center shrink-0">
                     <img 
@@ -143,7 +143,8 @@ export default function Navbar({
                       referrerPolicy="no-referrer"
                     />
                   </div>
-                  <span>Login with Google</span>
+                  <span className="hidden sm:inline">Login with Google</span>
+                  <span className="inline sm:hidden">Login</span>
                 </button>
               )
             )
