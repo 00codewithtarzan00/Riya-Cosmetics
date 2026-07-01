@@ -31,6 +31,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState<boolean>(false);
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Cart state initialized from localStorage
   const [cart, setCart] = useState<{ product: Product; quantity: number }[]>(() => {
@@ -60,10 +61,12 @@ export default function App() {
 
   const handleLogin = async () => {
     try {
+      setAuthError(null);
       const loggedInUser = await loginWithGoogle();
       return loggedInUser;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Google Sign-In failed:', err);
+      setAuthError(err?.message || String(err));
       return null;
     }
   };
@@ -259,6 +262,8 @@ export default function App() {
           user={user}
           onLogin={handleLogin}
           firebaseError={firebaseError}
+          authError={authError}
+          setAuthError={setAuthError}
         />
       ) : currentView === 'invoice' ? (
         /* Digital Printable Invoice and Billing screen */

@@ -55,6 +55,8 @@ interface ProductCatalogProps {
   user?: any;
   onLogin?: () => void;
   firebaseError?: string | null;
+  authError?: string | null;
+  setAuthError?: (err: string | null) => void;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -93,7 +95,9 @@ export default function ProductCatalog({
   setIsCartOpen,
   user,
   onLogin,
-  firebaseError = null
+  firebaseError = null,
+  authError = null,
+  setAuthError
 }: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -105,11 +109,25 @@ export default function ProductCatalog({
 
   const [showRulesGuide, setShowRulesGuide] = useState<boolean>(true);
   const [copiedRules, setCopiedRules] = useState<boolean>(false);
+  const [copiedDomainDev, setCopiedDomainDev] = useState<boolean>(false);
+  const [copiedDomainPre, setCopiedDomainPre] = useState<boolean>(false);
 
   const handleCopyRules = () => {
     navigator.clipboard.writeText(FIRESTORE_RULES_TEXT);
     setCopiedRules(true);
     setTimeout(() => setCopiedRules(false), 3000);
+  };
+
+  const handleCopyDomainDev = () => {
+    navigator.clipboard.writeText('ais-dev-wjg5muz3mrg7ldl4i3vf2c-764536190912.asia-southeast1.run.app');
+    setCopiedDomainDev(true);
+    setTimeout(() => setCopiedDomainDev(false), 3000);
+  };
+
+  const handleCopyDomainPre = () => {
+    navigator.clipboard.writeText('ais-pre-wjg5muz3mrg7ldl4i3vf2c-764536190912.asia-southeast1.run.app');
+    setCopiedDomainPre(true);
+    setTimeout(() => setCopiedDomainPre(false), 3000);
   };
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -469,6 +487,132 @@ export default function ProductCatalog({
             )}
           </div>
         )}
+
+        {authError && (() => {
+          const isCancelledError = authError.toLowerCase().includes('user-cancelled') || 
+                                   authError.toLowerCase().includes('popup-closed-by-user') || 
+                                   authError.toLowerCase().includes('popup_closed_by_user') || 
+                                   authError.toLowerCase().includes('popup-closed') || 
+                                   authError.toLowerCase().includes('cancelled-popup-request') || 
+                                   authError.toLowerCase().includes('idp denied access') ||
+                                   authError.toLowerCase().includes('cancelled');
+          
+          if (isCancelledError) {
+            return (
+              <div id="auth-cancelled-banner" className="mb-6 p-4 bg-amber-50/90 border border-amber-200/80 text-stone-800 rounded-[2px] shadow-xs animate-fade-in">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-1.5 bg-amber-100 text-amber-800 rounded-full shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-amber-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-amber-950 text-xs md:text-sm">
+                        Sign-In Cancelled / साइन-इन रद्द किया गया
+                      </h3>
+                      <p className="text-[11px] text-stone-600 mt-0.5 leading-relaxed">
+                        The Google sign-in window was closed or access was not granted. No settings change is needed; you can simply log in again whenever you're ready.
+                      </p>
+                      <p className="text-[11px] text-stone-500 mt-0.5 leading-relaxed">
+                        गूगल लॉगिन विंडो बंद कर दी गई थी। जब भी आप तैयार हों, आप दोबारा प्रयास कर सकते हैं - इसके लिए किसी सेटिंग्स बदलाव की आवश्यकता नहीं है।
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setAuthError && setAuthError(null)}
+                    className="px-3 py-1.5 text-[10px] font-bold tracking-wide border border-amber-300 hover:bg-amber-100 text-amber-900 transition-all cursor-pointer rounded-[2px] shrink-0"
+                  >
+                    Dismiss / बंद करें
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div id="auth-unauthorized-banner" className="mb-6 p-4 md:p-6 bg-rose-50/90 border border-rose-200/80 text-stone-800 rounded-[2px] shadow-xs animate-fade-in">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-rose-100 text-rose-800 rounded-full shrink-0">
+                    <ShieldAlert className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-rose-950 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
+                      Google Sign-In Domain Unauthorized / अनधिकृत डोमेन समस्या
+                    </h3>
+                    <p className="text-xs text-rose-950 font-bold mt-1 bg-rose-100/50 px-2 py-1 inline-block rounded">
+                      Error Detail: {authError}
+                    </p>
+                    <p className="text-xs text-stone-600 mt-2 leading-relaxed">
+                      Firebase Authentication Google Sign-In requires your preview and development domains to be explicitly registered in your Authorized Domains list.
+                    </p>
+                    <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">
+                      फ़ायरबेस ऑथेंटिकेशन गूगल लॉगिन के लिए आपके पूर्वावलोकन (Preview) डोमेन को आपके अधिकृत डोमेन (Authorized Domains) सूची में जोड़ा जाना आवश्यक है।
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAuthError && setAuthError(null)}
+                  className="px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase border border-rose-300 hover:bg-rose-100 text-rose-900 transition-all cursor-pointer rounded-[2px] shrink-0"
+                >
+                  Dismiss / हटाएं
+                </button>
+              </div>
+
+              <div className="mt-5 pt-5 border-t border-rose-200/60 text-xs text-stone-700 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/50 p-3 rounded border border-rose-100">
+                    <h4 className="font-bold text-stone-900 mb-1.5 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      English Domain Setup Guide:
+                    </h4>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-stone-600 leading-relaxed">
+                      <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-rose-800 font-semibold hover:underline inline-flex items-center gap-0.5">Firebase Console <ExternalLink className="w-3 h-3" /></a> and select project <code className="font-mono bg-stone-100 px-1 text-stone-800">riya-cosmetics-c6ee0</code>.</li>
+                      <li>Go to <strong>Authentication</strong> &gt; click <strong>Settings</strong> tab &gt; select <strong>Authorized domains</strong>.</li>
+                      <li>Click <strong>Add domain</strong> and add both domains shown below.</li>
+                      <li>Once added, click Google Login again - it will work perfectly!</li>
+                    </ol>
+                  </div>
+                  <div className="bg-white/50 p-3 rounded border border-rose-100">
+                    <h4 className="font-bold text-stone-900 mb-1.5 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      हिंदी डोमेन सेटअप गाइड:
+                    </h4>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-stone-600 leading-relaxed">
+                      <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-rose-800 font-semibold hover:underline inline-flex items-center gap-0.5">Firebase Console <ExternalLink className="w-3 h-3" /></a> खोलें और <code className="font-mono bg-stone-100 px-1 text-stone-800">riya-cosmetics-c6ee0</code> चुनें।</li>
+                      <li>बाएं मेनू में <strong>Authentication</strong> पर जाएं &gt; ऊपर <strong>Settings</strong> टैब पर क्लिक करें &gt; <strong>Authorized domains</strong> चुनें।</li>
+                      <li><strong>Add domain</strong> पर क्लिक करें और नीचे दिए गए दोनों डोमेन जोड़ें।</li>
+                      <li>डोमेन जोड़ने के बाद, दोबारा गूगल लॉगिन करें - यह सफलतापूर्वक काम करेगा!</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mt-4 bg-white/70 p-3.5 rounded border border-rose-100">
+                  <p className="font-bold text-stone-900 text-xs mb-2">Domains to add to your Authorized Domains list:</p>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2 bg-stone-900 text-stone-200 font-mono text-[11px] rounded-[2px] border border-stone-800">
+                    <span className="truncate select-all px-1.5 text-stone-300">ais-dev-wjg5muz3mrg7ldl4i3vf2c-764536190912.asia-southeast1.run.app</span>
+                    <button
+                      onClick={handleCopyDomainDev}
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-100 hover:text-white transition-all text-[10px] font-semibold rounded-[2px] cursor-pointer shrink-0 border border-stone-700"
+                    >
+                      {copiedDomainDev ? <ClipboardCheck className="w-3 h-3 text-emerald-400" /> : <Clipboard className="w-3 h-3 text-stone-400" />}
+                      {copiedDomainDev ? 'Copied!' : 'Copy / कॉपी करें'}
+                    </button>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2 bg-stone-900 text-stone-200 font-mono text-[11px] rounded-[2px] border border-stone-800">
+                    <span className="truncate select-all px-1.5 text-stone-300">ais-pre-wjg5muz3mrg7ldl4i3vf2c-764536190912.asia-southeast1.run.app</span>
+                    <button
+                      onClick={handleCopyDomainPre}
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-100 hover:text-white transition-all text-[10px] font-semibold rounded-[2px] cursor-pointer shrink-0 border border-stone-700"
+                    >
+                      {copiedDomainPre ? <ClipboardCheck className="w-3 h-3 text-emerald-400" /> : <Clipboard className="w-3 h-3 text-stone-400" />}
+                      {copiedDomainPre ? 'Copied!' : 'Copy / कॉपी करें'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Searching, Sorting, and Category Controls Group */}
         <div className="mb-3">

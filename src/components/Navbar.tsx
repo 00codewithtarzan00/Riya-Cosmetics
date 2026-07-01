@@ -133,9 +133,17 @@ export default function Navbar({
                 <button
                   id="navbar-google-login-btn"
                   onClick={onLogin}
-                  className="flex items-center gap-2 px-3.5 py-2.5 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
+                  className="flex items-center gap-2.5 px-4 py-2 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
                 >
-                  Login with Google
+                  <div className="w-[18px] h-[18px] bg-white rounded-full flex items-center justify-center shrink-0">
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" 
+                      alt="Google" 
+                      className="w-[11px] h-[11px] object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <span>Login with Google</span>
                 </button>
               )
             )
