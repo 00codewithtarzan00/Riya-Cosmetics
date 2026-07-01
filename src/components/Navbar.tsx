@@ -63,55 +63,44 @@ export default function Navbar({
           {/* User Auth Info or Login button */}
           {currentView === 'catalog' && (
             user ? (
-              <div className="flex items-center gap-2 sm:gap-3">
-                {/* My Orders Button */}
+              <div className="flex items-center gap-2 sm:gap-3 animate-fade-in">
+                {/* Unified "My Orders" button styled exactly like Google login button */}
                 {onOpenMyOrders && (
-                  <>
-                    <button
-                      id="navbar-my-orders-btn"
-                      onClick={onOpenMyOrders}
-                      className="hidden sm:flex items-center gap-1 px-3 py-2 border border-stone-200 text-stone-700 hover:text-white hover:bg-stone-900 hover:border-stone-900 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer"
-                    >
-                      My Orders
-                    </button>
-                    <button
-                      onClick={onOpenMyOrders}
-                      className="sm:hidden flex items-center justify-center p-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-900 transition-all duration-300 cursor-pointer"
-                      title="My Orders"
-                    >
-                      <Layers className="w-4 h-4" />
-                    </button>
-                  </>
+                  <button
+                    id="navbar-my-orders-btn"
+                    onClick={onOpenMyOrders}
+                    className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
+                  >
+                    <div className="w-[18px] h-[18px] rounded-full overflow-hidden border border-white/20 bg-white flex items-center justify-center shrink-0">
+                      {user.photoURL ? (
+                        <img 
+                          src={user.photoURL} 
+                          alt={user.displayName || 'User'} 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <span className="text-[10px] font-extrabold text-stone-950">
+                          {(user.displayName || user.email || 'U').charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden xs:inline">My Orders</span>
+                    <span className="xs:hidden">Orders</span>
+                  </button>
                 )}
 
-                {/* Profile Picture & Dropdown/SignOut */}
-                <div className="flex items-center gap-2">
-                  <div className="w-[30px] h-[30px] rounded-full overflow-hidden border border-stone-300 bg-stone-100 flex items-center justify-center shrink-0">
-                    {user.photoURL ? (
-                      <img 
-                        src={user.photoURL} 
-                        alt={user.displayName || 'User'} 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
-                        {(user.displayName || user.email || 'U').charAt(0)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {onLogout && (
-                    <button
-                      id="navbar-google-logout-btn"
-                      onClick={onLogout}
-                      className="text-[10px] text-stone-400 hover:text-red-500 font-bold uppercase tracking-wider transition-all cursor-pointer"
-                      title="Logout"
-                    >
-                      Logout
-                    </button>
-                  )}
-                </div>
+                {/* Logout option next to it */}
+                {onLogout && (
+                  <button
+                    id="navbar-google-logout-btn"
+                    onClick={onLogout}
+                    className="text-[10px] text-stone-400 hover:text-red-500 font-bold uppercase tracking-wider transition-all cursor-pointer px-1 py-2"
+                    title="Logout"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
             ) : (
               onLogin && (
