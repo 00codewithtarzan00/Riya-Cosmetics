@@ -8,7 +8,8 @@ import {
   onSnapshot, 
   query,
   setDoc,
-  writeBatch
+  writeBatch,
+  where
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { Product } from './components/ProductCard';
@@ -355,6 +356,7 @@ export interface Order {
   totalAmount: number;
   status: 'Pending' | 'Processing' | 'Dispatched' | 'Delivered' | 'Cancelled';
   createdAt: string;
+  customerUid?: string | null;
 }
 
 const ORDERS_COLLECTION = 'orders';
@@ -362,11 +364,15 @@ const ORDERS_COLLECTION = 'orders';
 // Subscribe to orders list in real-time
 export function subscribeToOrders(
   onUpdate: (orders: Order[]) => void,
+  customerUid?: string | null,
   onError?: (error: Error) => void
 ) {
   try {
     const ordersRef = collection(db, ORDERS_COLLECTION);
-    const q = query(ordersRef);
+    let q = query(ordersRef);
+    if (customerUid) {
+      q = query(ordersRef, where('customerUid', '==', customerUid));
+    }
     return onSnapshot(
       q,
       (snapshot) => {
@@ -382,6 +388,7 @@ export function subscribeToOrders(
             totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : Number(data.totalAmount || 0),
             status: data.status || 'Pending',
             createdAt: data.createdAt || '',
+            customerUid: data.customerUid || null
           });
         });
         // Sort orders by createdAt descending (newest first)
@@ -418,7 +425,8 @@ export async function dbAddOrder(newOrder: Omit<Order, 'id'>): Promise<string> {
       items: newOrder.items,
       totalAmount: Number(newOrder.totalAmount),
       status: newOrder.status,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      customerUid: newOrder.customerUid || null
     });
     return orderId;
   } catch (error) {
@@ -455,6 +463,7 @@ export async function dbGetOrder(orderId: string): Promise<Order | null> {
         totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : Number(data.totalAmount || 0),
         status: data.status || 'Pending',
         createdAt: data.createdAt || '',
+        customerUid: data.customerUid || null
       };
     }
     return null;
@@ -486,6 +495,68 @@ export async function dbDeleteOrdersBulk(orderIds: string[]): Promise<void> {
     await batch.commit();
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `bulk_delete/${orderIds.length}_items`);
+  }
+}
+
+// Google Auth Handlers
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+
+export async function loginWithGoogle() {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    return result.user;
+  } catch (error) {
+    console.error("Google login failed:", error);
+    throw error;
+  }
+}
+
+export async function logoutUser() {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Google logout failed:", error);
+    throw error;
+  }
+}
+
+// User Profile interfaces and actions
+export interface UserProfile {
+  uid: string;
+  displayName: string;
+  email: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  updatedAt: string;
+}
+
+// Fetch user profile from Firestore
+export async function dbGetUserProfile(userId: string): Promise<UserProfile | null> {
+  const docRef = doc(db, 'users', userId);
+  try {
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as UserProfile;
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch user profile:", error);
+    return null;
+  }
+}
+
+// Save or update user profile
+export async function dbSaveUserProfile(profile: Partial<UserProfile> & { uid: string }): Promise<void> {
+  const docRef = doc(db, 'users', profile.uid);
+  try {
+    await setDoc(docRef, {
+      ...profile,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Failed to save user profile:", error);
   }
 }
 

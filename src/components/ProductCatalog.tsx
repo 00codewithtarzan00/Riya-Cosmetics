@@ -3,10 +3,12 @@ import ProductCard, {Product, formatCustomQuantity} from './ProductCard.tsx';
 import {
   Search, SlidersHorizontal, ArrowUpDown, X, Sparkles, CheckCircle2, ShieldAlert,
   Palette, Droplet, Scissors, Heart, Baby, Gem, Grid, Smile, Boxes,
-  ShoppingCart, Plus, Minus, Trash2, User, ShoppingBag, Phone, MapPin, MessageSquare, Check, ArrowLeft, ArrowRight
+  ShoppingCart, Plus, Minus, Trash2, User, ShoppingBag, Phone, MapPin, MessageSquare, Check, ArrowLeft, ArrowRight,
+  ClipboardCheck, Clipboard, ExternalLink, HelpCircle
 } from 'lucide-react';
-import { SettingsConfig, dbAddOrder } from '../firebaseService';
+import { SettingsConfig, dbAddOrder, dbGetUserProfile, dbSaveUserProfile } from '../firebaseService';
 import BannerSlider from './BannerSlider';
+import { FIRESTORE_RULES_TEXT } from '../fallbackData';
 
 function ProductCardSkeleton() {
   return (
@@ -50,6 +52,9 @@ interface ProductCatalogProps {
   onClearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
+  user?: any;
+  onLogin?: () => void;
+  firebaseError?: string | null;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -85,7 +90,10 @@ export default function ProductCatalog({
   onRemoveFromCart,
   onClearCart,
   isCartOpen,
-  setIsCartOpen
+  setIsCartOpen,
+  user,
+  onLogin,
+  firebaseError = null
 }: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -94,6 +102,15 @@ export default function ProductCatalog({
 
   const [visibleCount, setVisibleCount] = useState<number>(6);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
+  const [showRulesGuide, setShowRulesGuide] = useState<boolean>(true);
+  const [copiedRules, setCopiedRules] = useState<boolean>(false);
+
+  const handleCopyRules = () => {
+    navigator.clipboard.writeText(FIRESTORE_RULES_TEXT);
+    setCopiedRules(true);
+    setTimeout(() => setCopiedRules(false), 3000);
+  };
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Checkout-related local states
@@ -107,6 +124,48 @@ export default function ProductCatalog({
 
   const [placedOrderItems, setPlacedOrderItems] = useState<{ name: string; quantity: number; price: number; qtyVal?: string | number; qtyUnit?: string }[]>([]);
   const [placedTotal, setPlacedTotal] = useState<number>(0);
+
+  const [profileLoading, setProfileLoading] = useState<boolean>(false);
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+
+  // Load User Profile from Firestore on login
+  useEffect(() => {
+    async function loadProfile() {
+      if (user) {
+        setProfileLoading(true);
+        try {
+          const profile = await dbGetUserProfile(user.uid);
+          if (profile) {
+            if (profile.customerName) setCustomerName(profile.customerName);
+            if (profile.customerPhone) setCustomerPhone(profile.customerPhone);
+            if (profile.customerAddress) setCustomerAddress(profile.customerAddress);
+          } else {
+            // Default to display name if no profile saved yet
+            if (user.displayName) {
+              setCustomerName(user.displayName);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading user profile:", error);
+        } finally {
+          setProfileLoading(false);
+        }
+      } else {
+        // Clear fields on logout
+        setCustomerName('');
+        setCustomerPhone('');
+        setCustomerAddress('');
+      }
+    }
+    loadProfile();
+  }, [user]);
+
+  // Automatically open checkout form once user is successfully authenticated (if they clicked "Proceed to Order")
+  useEffect(() => {
+    if (user && isCartOpen && !orderSuccessId && !isCheckoutStep) {
+      setIsCheckoutStep(true);
+    }
+  }, [user, isCartOpen]);
 
   const cartSubtotal = useMemo(() => {
     return cart.reduce((total, item) => {
@@ -167,8 +226,25 @@ export default function ProductCatalog({
         items: orderItems,
         totalAmount: cartSubtotal,
         status: 'Pending',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        customerUid: user ? user.uid : null
       });
+
+      // Save/update user profile with these details so they don't have to fill them again
+      if (user) {
+        try {
+          await dbSaveUserProfile({
+            uid: user.uid,
+            displayName: user.displayName || '',
+            email: user.email || '',
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            customerAddress: customerAddress.trim()
+          });
+        } catch (profileErr) {
+          console.error('Failed to save user profile:', profileErr);
+        }
+      }
 
       setOrderSuccessId(newOrderId);
       onClearCart();
@@ -316,6 +392,84 @@ export default function ProductCatalog({
     <div id="catalog-section" className="pt-22 pb-6 bg-[var(--theme-bg)] min-h-screen">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12">
         
+        {firebaseError && (
+          <div className="mb-6 p-4 md:p-6 bg-amber-50/90 border border-amber-200/80 text-stone-800 rounded-[2px] shadow-xs">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-100 text-amber-800 rounded-full mt-0.5 md:mt-0 shrink-0">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-950 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
+                    Custom Firebase Connected - Missing Security Rules
+                    <span className="text-stone-400 font-light hidden md:inline">|</span>
+                    <span className="text-xs md:text-sm font-medium text-amber-900">कस्टम फ़ायरबेस सिक्योरिटी रूल्स की कमी</span>
+                  </h3>
+                  <p className="text-xs text-stone-600 mt-1 leading-relaxed">
+                    Your app is connected to the project <code className="font-mono bg-amber-100/60 px-1 rounded text-amber-950 font-bold">riya-cosmetics-c6ee0</code>, but lacks read/write security permission rules in your remote database. Falls back to beautiful local products for a fully functional preview.
+                  </p>
+                  <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">
+                    आपका ऐप <code className="font-mono bg-amber-100/60 px-1 rounded text-amber-950 font-bold">riya-cosmetics-c6ee0</code> प्रोजेक्ट से कनेक्टेड है, लेकिन फ़ायरस्टोर सिक्योरिटी रूल्स सेट नहीं हैं। वर्तमान में फ़ालबैक उत्पाद दिखाए जा रहे हैं ताकि आप ऐप को टेस्ट कर सकें।
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowRulesGuide(!showRulesGuide)}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-amber-900 hover:bg-amber-950 text-white transition-all cursor-pointer rounded-[2px] shrink-0"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                {showRulesGuide ? 'Hide Instructions' : 'How to Fix / कैसे ठीक करें'}
+              </button>
+            </div>
+
+            {showRulesGuide && (
+              <div className="mt-5 pt-5 border-t border-amber-200/60 text-xs text-stone-700 space-y-4 animate-fade-in">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/50 p-3 rounded border border-amber-100">
+                    <h4 className="font-bold text-stone-900 mb-1.5 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      English Setup Guide:
+                    </h4>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-stone-600 leading-relaxed">
+                      <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-amber-800 font-semibold hover:underline inline-flex items-center gap-0.5">Firebase Console <ExternalLink className="w-3 h-3" /></a> and select project <code className="font-mono bg-stone-100 px-1 text-stone-800">riya-cosmetics-c6ee0</code>.</li>
+                      <li>Go to <strong>Firestore Database</strong> in the left sidebar menu.</li>
+                      <li>Click the <strong>Rules</strong> tab at the top.</li>
+                      <li>Click <strong>"Copy Rules"</strong> below and paste them into the console editor.</li>
+                      <li>Click <strong>Publish</strong> to apply the rules. Then refresh this page!</li>
+                    </ol>
+                  </div>
+                  <div className="bg-white/50 p-3 rounded border border-amber-100">
+                    <h4 className="font-bold text-stone-900 mb-1.5 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      हिंदी सेटअप गाइड:
+                    </h4>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-stone-600 leading-relaxed">
+                      <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-amber-800 font-semibold hover:underline inline-flex items-center gap-0.5">Firebase Console <ExternalLink className="w-3 h-3" /></a> खोलें और <code className="font-mono bg-stone-100 px-1 text-stone-800">riya-cosmetics-c6ee0</code> चुनें।</li>
+                      <li>बाएं साइडबार मेनू में <strong>Firestore Database</strong> पर जाएं।</li>
+                      <li>शीर्ष पर <strong>Rules</strong> टैब पर क्लिक करें।</li>
+                      <li>नीचे दिए गए <strong>"Copy Rules"</strong> बटन पर क्लिक करें और इसे कंसोल एडिटर में पेस्ट करें।</li>
+                      <li>रूल्स लागू करने के लिए <strong>Publish</strong> पर क्लिक करें और फिर इस पेज को रीफ्रेश करें!</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="bg-stone-950 text-stone-100 p-4 rounded-[2px] mt-4 font-mono relative text-[11px] leading-relaxed max-h-56 overflow-y-auto border border-stone-800 shadow-inner">
+                  <div className="absolute right-3 top-3 z-10">
+                    <button
+                      onClick={handleCopyRules}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-100 hover:text-white transition-all text-[11px] font-semibold border border-stone-700 hover:border-stone-600 rounded-[2px] cursor-pointer"
+                    >
+                      {copiedRules ? <ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Clipboard className="w-3.5 h-3.5 text-stone-400" />}
+                      {copiedRules ? 'Copied / कॉपी हो गया!' : 'Copy Rules / कॉपी करें'}
+                    </button>
+                  </div>
+                  <pre className="whitespace-pre-wrap select-all font-mono text-stone-300 mt-8 pr-12">{FIRESTORE_RULES_TEXT}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Searching, Sorting, and Category Controls Group */}
         <div className="mb-3">
           {/* Top Control Bar: Search and Sort */}
@@ -329,7 +483,7 @@ export default function ProductCatalog({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search catalog... (e.g. lipstick, hair oil, ornaments)"
-                className="w-full pl-10 pr-10 py-1.5 sm:py-2 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] placeholder-stone-400 rounded-none focus:outline-none focus:border-[var(--theme-accent)] transition-all"
+                className="w-full pl-10 pr-10 py-2 sm:py-2.5 bg-white border border-[var(--theme-border)] text-sm text-[var(--theme-text-primary)] placeholder-stone-400 rounded-none focus:outline-none focus:border-[var(--theme-accent)] transition-all"
               />
               {searchQuery && (
                 <button 
@@ -430,7 +584,7 @@ export default function ProductCatalog({
 
         {/* Product Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 animate-pulse">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 animate-pulse">
             {Array.from({ length: 8 }).map((_, index) => (
               <ProductCardSkeleton key={`initial-skeleton-${index}`} />
             ))}
@@ -445,7 +599,7 @@ export default function ProductCatalog({
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 transition-opacity duration-300">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 transition-opacity duration-300">
               {visibleProducts.map((p) => (
                 <ProductCard 
                   key={p.id} 
@@ -747,9 +901,19 @@ export default function ProductCatalog({
                   {/* Step 2: Address */}
                   <button
                     disabled={!!orderSuccessId || cart.length === 0}
-                    onClick={() => {
+                    onClick={async () => {
                       if (!orderSuccessId && cart.length > 0) {
-                        setIsCheckoutStep(true);
+                        if (!user) {
+                          if (onLogin) {
+                            try {
+                              await onLogin();
+                            } catch (err) {
+                              console.error("Login failed on tracker click:", err);
+                            }
+                          }
+                        } else {
+                          setIsCheckoutStep(true);
+                        }
                       }
                     }}
                     className={`flex items-center gap-2 font-mono uppercase text-[10px] font-bold tracking-wider transition-all duration-300 ${
@@ -868,6 +1032,20 @@ export default function ProductCatalog({
                           }} 
                           className="space-y-4"
                         >
+                          {!user && onLogin && (
+                            <div className="bg-stone-50 border border-stone-200/80 p-3.5 text-center">
+                              <p className="text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-2 leading-relaxed">
+                                Track this order status in real-time? / क्या आप इस ऑर्डर को ट्रैक करना चाहते हैं?
+                              </p>
+                              <button
+                                type="button"
+                                onClick={onLogin}
+                                className="w-full py-2 bg-stone-900 hover:bg-stone-800 text-white text-[10px] font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer"
+                              >
+                                Login with Google / गूगल से लॉगिन करें
+                              </button>
+                            </div>
+                          )}
                           <div>
                             <div className="flex justify-between items-center mb-1.5">
                               <label className="block text-[10px] font-bold uppercase tracking-widest text-[#282828]">
@@ -1129,19 +1307,46 @@ export default function ProductCatalog({
                           <span className="text-xs uppercase font-extrabold tracking-widest text-stone-500">Subtotal:</span>
                           <span className="text-lg font-black text-stone-950">₹{cartSubtotal.toLocaleString('en-IN')}</span>
                         </div>
+                        {!user && (
+                          <div className="mb-4 p-3 bg-stone-50 border border-stone-200/80 text-[10px] text-stone-600 font-bold uppercase tracking-wider text-center leading-normal">
+                            <span className="text-[#ff0052] block mb-1">⚠️ LOGIN MANDATORY / लॉगिन अनिवार्य है</span>
+                            Google Login is required to book orders for security and real-time tracking.
+                          </div>
+                        )}
                         <div className="flex gap-2">
                           <button
                             onClick={() => setIsCartOpen(false)}
-                            className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer"
+                            className="w-1/2 py-3.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer border border-stone-200"
                           >
-                            Continue Shopping
+                            Close Bag
                           </button>
-                          <button
-                            onClick={() => setIsCheckoutStep(true)}
-                            className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm"
-                          >
-                            Proceed to Order <ArrowRight className="w-3 h-3" />
-                          </button>
+                          {user ? (
+                            <button
+                              onClick={() => setIsCheckoutStep(true)}
+                              className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm"
+                            >
+                              Proceed to Order <ArrowRight className="w-3 h-3" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={async () => {
+                                if (onLogin) {
+                                  setIsLoggingIn(true);
+                                  try {
+                                    await onLogin();
+                                  } catch (err) {
+                                    console.error("Login failed on checkout proceed:", err);
+                                  } finally {
+                                    setIsLoggingIn(false);
+                                  }
+                                }
+                              }}
+                              disabled={isLoggingIn}
+                              className="w-1/2 py-3.5 bg-stone-950 hover:bg-stone-900 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm border border-stone-950"
+                            >
+                              {isLoggingIn ? 'Signing in...' : 'Login & Order / लॉगिन'} <ArrowRight className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
                       </>
                     ) : null}

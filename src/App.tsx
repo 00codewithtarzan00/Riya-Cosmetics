@@ -3,9 +3,23 @@ import Navbar from './components/Navbar.tsx';
 import ProductCatalog from './components/ProductCatalog.tsx';
 import AdminPortal from './components/AdminPortal.tsx';
 import InvoicePage from './components/InvoicePage.tsx';
+import MyOrdersModal from './components/MyOrdersModal.tsx';
 import {Product} from './components/ProductCard.tsx';
 import {Heart} from 'lucide-react';
-import {subscribeToProducts, dbAddProduct, dbUpdateProduct, dbDeleteProduct, SettingsConfig, subscribeToBanners, DEFAULT_SETTINGS} from './firebaseService.ts';
+import {
+  subscribeToProducts, 
+  dbAddProduct, 
+  dbUpdateProduct, 
+  dbDeleteProduct, 
+  SettingsConfig, 
+  subscribeToBanners, 
+  DEFAULT_SETTINGS,
+  loginWithGoogle,
+  logoutUser
+} from './firebaseService.ts';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from './firebase';
+import { FALLBACK_PRODUCTS } from './fallbackData.ts';
 
 export default function App() {
   const [currentView, setView] = useState<'catalog' | 'admin' | 'invoice'>('catalog');
@@ -14,6 +28,9 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [settings, setSettings] = useState<SettingsConfig>(DEFAULT_SETTINGS);
+  const [user, setUser] = useState<User | null>(null);
+  const [isMyOrdersOpen, setIsMyOrdersOpen] = useState<boolean>(false);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
   // Cart state initialized from localStorage
   const [cart, setCart] = useState<{ product: Product; quantity: number }[]>(() => {
@@ -32,6 +49,32 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('riya_cosmetics_cart', JSON.stringify(cart));
   }, [cart]);
+
+  // Listen to Google Authentication State Changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      const loggedInUser = await loginWithGoogle();
+      return loggedInUser;
+    } catch (err) {
+      console.error('Google Sign-In failed:', err);
+      return null;
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error('Google Sign-Out failed:', err);
+    }
+  };
 
   // Scroll to the top of the page whenever the view changes
   useEffect(() => {
@@ -60,19 +103,44 @@ export default function App() {
 
   // Set up real-time connection and active synchronization subscription
   useEffect(() => {
-    const unsubscribe = subscribeToProducts((prodList) => {
-      setProducts(prodList || []);
-      setIsLoading(false);
-    }, (error) => {
-      console.error('Real-time sync error:', error);
-      setIsLoading(false);
-    });
+    let unsubscribe: (() => void) | undefined;
+    let unsubscribeBanners: (() => void) | undefined;
 
-    const unsubscribeBanners = subscribeToBanners((bannerSettings) => {
-      setSettings(bannerSettings);
-    }, (error) => {
-      console.error('Banner sync error:', error);
-    });
+    try {
+      unsubscribe = subscribeToProducts((prodList) => {
+        // If query succeeded but returned 0 items, we can also fall back to default products so the page is populated
+        if (!prodList || prodList.length === 0) {
+          setProducts(FALLBACK_PRODUCTS);
+        } else {
+          setProducts(prodList);
+        }
+        setIsLoading(false);
+      }, (error) => {
+        console.error('Real-time sync error:', error);
+        setFirebaseError(error?.message || String(error));
+        setProducts(FALLBACK_PRODUCTS);
+        setIsLoading(false);
+      });
+    } catch (error: any) {
+      console.error('Failed to subscribe to products:', error);
+      setFirebaseError(error?.message || String(error));
+      setProducts(FALLBACK_PRODUCTS);
+      setIsLoading(false);
+    }
+
+    try {
+      unsubscribeBanners = subscribeToBanners((bannerSettings) => {
+        setSettings(bannerSettings || DEFAULT_SETTINGS);
+      }, (error) => {
+        console.error('Banner sync error:', error);
+        setFirebaseError(error?.message || String(error));
+        setSettings(DEFAULT_SETTINGS);
+      });
+    } catch (error: any) {
+      console.error('Failed to subscribe to banners:', error);
+      setFirebaseError(error?.message || String(error));
+      setSettings(DEFAULT_SETTINGS);
+    }
 
     return () => {
       unsubscribe?.();
@@ -167,6 +235,10 @@ export default function App() {
             window.location.hash = '';
             setIsCartOpen(true);
           }}
+          user={user}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onOpenMyOrders={() => setIsMyOrdersOpen(true)}
         />
       )}
 
@@ -184,6 +256,9 @@ export default function App() {
           onClearCart={handleClearCart}
           isCartOpen={isCartOpen}
           setIsCartOpen={setIsCartOpen}
+          user={user}
+          onLogin={handleLogin}
+          firebaseError={firebaseError}
         />
       ) : currentView === 'invoice' ? (
         /* Digital Printable Invoice and Billing screen */
@@ -220,6 +295,16 @@ export default function App() {
             </div>
           </div>
         </footer>
+      )}
+
+      {/* My Orders History Modal */}
+      {user && (
+        <MyOrdersModal
+          isOpen={isMyOrdersOpen}
+          onClose={() => setIsMyOrdersOpen(false)}
+          customerUid={user.uid}
+          customerName={user.displayName || user.email || 'Customer'}
+        />
       )}
     </div>
   );

@@ -72,9 +72,25 @@
         "items": { "type": "array", "description": "List of ordered cosmetic items" },
         "totalAmount": { "type": "number", "description": "Total amount of the order in INR" },
         "status": { "type": "string", "enum": ["Pending", "Processing", "Dispatched", "Delivered", "Cancelled"], "description": "Current workflow status of the order" },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when order was placed" }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when order was placed" },
+        "customerUid": { "type": "string", "description": "Unique Google user ID of the authenticated customer" }
       },
       "required": ["customerName", "customerPhone", "customerAddress", "items", "totalAmount", "status", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with delivery details",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique Google user ID" },
+        "displayName": { "type": "string", "description": "Google display name" },
+        "email": { "type": "string", "description": "Google email" },
+        "customerName": { "type": "string", "description": "Customer's manual name for shipping" },
+        "customerPhone": { "type": "string", "description": "Customer's manual phone number for shipping" },
+        "customerAddress": { "type": "string", "description": "Customer's manual address for shipping" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when details were updated" }
+      },
+      "required": ["uid"]
     }
   },
   "firestore": {
@@ -89,6 +105,10 @@
     "/orders/{orderId}": {
       "schema": "Order",
       "description": "Customer orders submitted from checkout"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile containing contact and shipping details"
     }
   }
 }
