@@ -84,7 +84,7 @@ export default function Navbar({
                   </>
                 )}
 
-                {/* Profile Picture */}
+                {/* Profile Picture & Dropdown/SignOut */}
                 <div className="flex items-center gap-2">
                   <div className="w-[30px] h-[30px] rounded-full overflow-hidden border border-stone-300 bg-stone-100 flex items-center justify-center shrink-0">
                     {user.photoURL ? (
@@ -100,6 +100,17 @@ export default function Navbar({
                       </span>
                     )}
                   </div>
+                  
+                  {onLogout && (
+                    <button
+                      id="navbar-google-logout-btn"
+                      onClick={onLogout}
+                      className="text-[10px] text-stone-400 hover:text-red-500 font-bold uppercase tracking-wider transition-all cursor-pointer"
+                      title="Logout"
+                    >
+                      Logout
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
