@@ -309,6 +309,7 @@ export default function App() {
           onClose={() => setIsMyOrdersOpen(false)}
           customerUid={user.uid}
           customerName={user.displayName || user.email || 'Customer'}
+          onLogout={handleLogout}
         />
       )}
     </div>

@@ -515,6 +515,11 @@ export default function ProductCatalog({
                       <p className="text-[11px] text-stone-500 mt-0.5 leading-relaxed">
                         गूगल लॉगिन विंडो बंद कर दी गई थी। जब भी आप तैयार हों, आप दोबारा प्रयास कर सकते हैं - इसके लिए किसी सेटिंग्स बदलाव की आवश्यकता नहीं है।
                       </p>
+                      <div className="mt-2 p-2 bg-amber-100/50 rounded border border-amber-200/50 text-[10.5px] text-amber-900 leading-relaxed">
+                        <strong>💡 Preview Tip:</strong> If the login popup closes instantly inside the AI Studio preview iframe, try clicking the <strong>"Open in New Tab"</strong> button in the top-right of AI Studio. It will open the application in a full browser window where popups are not restricted!
+                        <br />
+                        <strong>💡 पूर्वावलोकन सुझाव:</strong> यदि AI Studio प्रीव्यू फ्रेम के अंदर लॉगिन पॉपअप तुरंत बंद हो जाता है, तो AI Studio के ऊपर दाईं ओर <strong>"Open in New Tab"</strong> बटन पर क्लिक करके ऐप को नए टैब में खोलें, जहाँ कोई प्रतिबंध नहीं होगा।
+                      </div>
                     </div>
                   </div>
                   <button

@@ -7,6 +7,7 @@ interface MyOrdersModalProps {
   onClose: () => void;
   customerUid: string;
   customerName: string;
+  onLogout?: () => void;
 }
 
 const getStatusBadge = (status: Order['status']) => {
@@ -49,7 +50,7 @@ const getStatusBadge = (status: Order['status']) => {
   }
 };
 
-export default function MyOrdersModal({ isOpen, onClose, customerUid, customerName }: MyOrdersModalProps) {
+export default function MyOrdersModal({ isOpen, onClose, customerUid, customerName, onLogout }: MyOrdersModalProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -212,11 +213,22 @@ export default function MyOrdersModal({ isOpen, onClose, customerUid, customerNa
             )}
           </div>
 
-          {/* Footer note */}
-          <div className="p-4 bg-stone-50 border-t border-stone-100 text-center">
-            <p className="text-[9px] uppercase font-mono tracking-widest text-stone-400 font-medium">
+          {/* Footer note & Logout option */}
+          <div className="p-4 bg-stone-50 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[9px] uppercase font-mono tracking-widest text-stone-400 font-medium text-center sm:text-left">
               Riya Cosmetics Order Tracking System
             </p>
+            {onLogout && (
+              <button
+                onClick={() => {
+                  onLogout();
+                  onClose();
+                }}
+                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 border border-red-200 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer rounded-sm"
+              >
+                Log Out / लॉग आउट
+              </button>
+            )}
           </div>
 
         </div>
