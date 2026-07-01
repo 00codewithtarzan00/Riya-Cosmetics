@@ -58,22 +58,7 @@ export default function Navbar({
         {/* Action Button: Return to Catalog & Customer Auth Status */}
         <div className="flex items-center gap-2 xs:gap-3 md:gap-4 shrink-0">
           
-          {/* Shopping Bag Button (Catalog view only) */}
-          {currentView === 'catalog' && onOpenCart && (
-            <button
-              id="navbar-cart-toggle-btn"
-              onClick={onOpenCart}
-              className="relative group flex items-center justify-center p-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-900 transition-all duration-300 cursor-pointer"
-              title="View Cart"
-            >
-              <ShoppingBag className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#ff0052] text-white font-mono text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-pulse">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          )}
+
 
           {/* User Auth Info or Login button */}
           {currentView === 'catalog' && (
