@@ -1344,9 +1344,9 @@ export default function ProductCatalog({
                             <button
                               type="button"
                               onClick={() => setIsCheckoutStep(false)}
-                              className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer"
+                              className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 rounded-none cursor-pointer"
                             >
-                              Back to Cart
+                              <ArrowLeft className="w-3.5 h-3.5" /> Back to Cart
                             </button>
                             <button
                               type="submit"
@@ -1358,7 +1358,8 @@ export default function ProductCatalog({
                                   : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300'
                               }`}
                             >
-                              {isPlacingOrder ? 'Booking...' : 'Book Order'}
+                              <span>{isPlacingOrder ? 'Booking...' : 'Book Order'}</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </form>
@@ -1465,7 +1466,7 @@ export default function ProductCatalog({
                         <div className="flex gap-2">
                           <button
                             onClick={() => setIsCartOpen(false)}
-                            className="w-1/2 py-3.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer border border-stone-200"
+                            className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center rounded-none cursor-pointer border border-[#ff0052]"
                           >
                             Close Bag
                           </button>
@@ -1491,7 +1492,7 @@ export default function ProductCatalog({
                                 }
                               }}
                               disabled={isLoggingIn}
-                              className="w-1/2 py-3.5 bg-stone-950 hover:bg-stone-900 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm border border-stone-950"
+                              className="w-1/2 py-3.5 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white font-extrabold text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 rounded-none cursor-pointer shadow-sm border border-[#ff0052]"
                             >
                               {isLoggingIn ? 'Signing in...' : 'Login & Order / लॉगिन'} <ArrowRight className="w-3 h-3" />
                             </button>

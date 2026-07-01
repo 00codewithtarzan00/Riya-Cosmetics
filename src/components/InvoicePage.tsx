@@ -70,12 +70,13 @@ export default function InvoicePage({ orderId, onBackToShop }: InvoicePageProps)
     );
   }
 
-  const dateFormatted = new Date(order.createdAt).toLocaleDateString('en-IN', {
+  const dateFormatted = new Date(order.createdAt).toLocaleString('en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    hour12: true
   });
 
   // Calculate status colors

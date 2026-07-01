@@ -69,7 +69,7 @@ export default function Navbar({
                   <button
                     id="navbar-my-orders-btn"
                     onClick={onOpenMyOrders}
-                    className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
+                    className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-[#ff0052]"
                   >
                     <div className="w-[18px] h-[18px] rounded-full overflow-hidden border border-white/20 bg-white flex items-center justify-center shrink-0">
                       {user.photoURL ? (
@@ -85,8 +85,7 @@ export default function Navbar({
                         </span>
                       )}
                     </div>
-                    <span className="hidden xs:inline">My Orders</span>
-                    <span className="xs:hidden">Orders</span>
+                    <span>My Orders</span>
                   </button>
                 )}
 
@@ -107,7 +106,7 @@ export default function Navbar({
                 <button
                   id="navbar-google-login-btn"
                   onClick={onLogin}
-                  className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 bg-stone-950 hover:bg-stone-850 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-stone-950"
+                  className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 bg-[#ff0052] hover:bg-[#ff0052]/90 text-white hover:text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-none cursor-pointer border border-[#ff0052]"
                 >
                   <div className="w-[18px] h-[18px] bg-white rounded-full flex items-center justify-center shrink-0">
                     <img 
