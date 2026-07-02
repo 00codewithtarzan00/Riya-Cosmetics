@@ -14,8 +14,7 @@ import {
   subscribeToBanners, 
   DEFAULT_SETTINGS,
   loginWithGoogle,
-  logoutUser,
-  handleRedirectResult
+  logoutUser
 } from './firebaseService.ts';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
@@ -71,20 +70,8 @@ export default function App() {
     localStorage.setItem('riya_cosmetics_cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Listen to Google Authentication State Changes and handle Redirect result
+  // Listen to Google Authentication State Changes
   useEffect(() => {
-    // Check if we have redirected back from Google Login
-    handleRedirectResult()
-      .then((redirectedUser) => {
-        if (redirectedUser) {
-          setUser(redirectedUser);
-        }
-      })
-      .catch((err: any) => {
-        console.error('Google Redirect Sign-In failed:', err);
-        setAuthError(err?.message || String(err));
-      });
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
@@ -94,11 +81,10 @@ export default function App() {
   const handleLogin = async () => {
     try {
       setAuthError(null);
-      // loginWithGoogle triggers window redirect, so page will refresh and log in securely without a popup
-      await loginWithGoogle();
-      return null;
+      const loggedInUser = await loginWithGoogle();
+      return loggedInUser;
     } catch (err: any) {
-      console.error('Google Sign-In initialization failed:', err);
+      console.error('Google Sign-In failed:', err);
       setAuthError(err?.message || String(err));
       return null;
     }
