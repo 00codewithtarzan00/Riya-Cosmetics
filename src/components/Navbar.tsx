@@ -59,30 +59,23 @@ export default function Navbar({
 
         {/* Action Button: Return to Catalog & Customer Auth Status */}
         <div className="flex items-center gap-2 xs:gap-3 md:gap-4 shrink-0">
-          
-          {/* My Favorites Button */}
+
+          {/* Cart Button */}
           {currentView === 'catalog' && (
             <button
-              id="navbar-favorites-btn"
-              onClick={() => {
-                setSelectedCategory('Favorites');
-                onNavigateToCatalog();
-              }}
-              className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 border transition-all duration-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer ${
-                selectedCategory === 'Favorites'
-                  ? 'bg-rose-50 border-[#ff0052] text-[#ff0052]'
-                  : 'bg-white border-stone-200 hover:border-[#ff0052] text-stone-700 hover:text-[#ff0052]'
-              }`}
+              id="navbar-cart-btn"
+              onClick={onOpenCart}
+              className="relative flex items-center justify-center p-2 sm:p-2.5 text-stone-700 hover:text-[var(--theme-accent)] transition-colors cursor-pointer group rounded-full hover:bg-stone-50"
+              title="View Cart"
             >
-              <Heart className={`w-3.5 h-3.5 ${selectedCategory === 'Favorites' ? 'fill-[#ff0052] text-[#ff0052]' : 'text-stone-500 hover:text-[#ff0052]'}`} />
-              <span className="hidden md:inline">My Favorites</span>
-              {wishlistCount > 0 && (
-                <span className={`font-mono text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
-                  selectedCategory === 'Favorites' ? 'bg-[#ff0052] text-white' : 'bg-stone-100 text-stone-800'
-                }`}>
-                  {wishlistCount}
-                </span>
-              )}
+              <div className="relative">
+                <ShoppingBag className="w-5 h-5 sm:w-5 sm:h-5 transition-transform group-hover:scale-105" strokeWidth={1.5} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-[#ff0052] text-white font-mono text-[9px] sm:text-[10px] font-extrabold w-4 h-4 sm:w-[18px] sm:h-[18px] rounded-full flex items-center justify-center border-[1.5px] border-white shadow-sm">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
             </button>
           )}
 

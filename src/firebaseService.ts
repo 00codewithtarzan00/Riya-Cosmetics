@@ -129,7 +129,7 @@ export async function dbUpdateProduct(updatedProduct: Product): Promise<void> {
   const docPath = `${COLLECTION_NAME}/${updatedProduct.id}`;
   try {
     const docRef = doc(db, COLLECTION_NAME, String(updatedProduct.id));
-    await updateDoc(docRef, {
+    await setDoc(docRef, {
       name: updatedProduct.name,
       category: updatedProduct.category,
       priceInINR: Number(updatedProduct.priceInINR),
@@ -142,7 +142,7 @@ export async function dbUpdateProduct(updatedProduct: Product): Promise<void> {
       qtyUnit: updatedProduct.qtyUnit || '',
       inStock: updatedProduct.inStock !== false,
       updatedAt: new Date().toISOString()
-    });
+    }, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, docPath);
   }
