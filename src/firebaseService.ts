@@ -503,15 +503,25 @@ export async function dbDeleteOrdersBulk(orderIds: string[]): Promise<void> {
 }
 
 // Google Auth Handlers
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
   try {
-    const result = await signInWithPopup(auth, provider);
-    return result.user;
+    // Uses redirect method instead of popup window to ensure seamless logins without blocking or pop-up blocker issues
+    await signInWithRedirect(auth, provider);
   } catch (error) {
     console.error("Google login failed:", error);
+    throw error;
+  }
+}
+
+export async function handleRedirectResult() {
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user || null;
+  } catch (error) {
+    console.error("Google redirect result failed:", error);
     throw error;
   }
 }
