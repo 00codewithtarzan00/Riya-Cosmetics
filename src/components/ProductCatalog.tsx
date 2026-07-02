@@ -734,7 +734,7 @@ export default function ProductCatalog({
 
         {/* Product Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 animate-pulse">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 animate-pulse">
             {Array.from({ length: 8 }).map((_, index) => (
               <ProductCardSkeleton key={`initial-skeleton-${index}`} />
             ))}
@@ -749,7 +749,7 @@ export default function ProductCatalog({
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 transition-opacity duration-300">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 transition-opacity duration-300">
               {visibleProducts.map((p) => (
                 <ProductCard 
                   key={p.id} 

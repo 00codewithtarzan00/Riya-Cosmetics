@@ -7,7 +7,6 @@ import MyOrdersModal from './components/MyOrdersModal.tsx';
 import {Product} from './components/ProductCard.tsx';
 import {Heart} from 'lucide-react';
 import {
-  subscribeToProducts, 
   dbAddProduct, 
   dbUpdateProduct, 
   dbDeleteProduct, 
@@ -20,18 +19,38 @@ import {
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
 import { FALLBACK_PRODUCTS } from './fallbackData.ts';
+import { useRealtimeProducts } from './hooks/useRealtimeProducts.ts';
 
 export default function App() {
   const [currentView, setView] = useState<'catalog' | 'admin' | 'invoice'>('catalog');
   const [invoiceOrderId, setInvoiceOrderId] = useState<string>('');
-  const [products, setProducts] = useState<Product[]>([]);
+  
+  // Use the optimized realtime products hook with useMemo and web worker processing
+  const { products, isLoading, error: productsError } = useRealtimeProducts();
+  
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [settings, setSettings] = useState<SettingsConfig>(DEFAULT_SETTINGS);
+  
+  // Load settings from cache initially
+  const [settings, setSettings] = useState<SettingsConfig>(() => {
+    try {
+      const cached = localStorage.getItem('riya_cosmetics_settings_cache');
+      return cached ? JSON.parse(cached) : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+  
   const [user, setUser] = useState<User | null>(null);
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState<boolean>(false);
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Sync products hook error to firebaseError state
+  useEffect(() => {
+    if (productsError) {
+      setFirebaseError(productsError);
+    }
+  }, [productsError]);
 
   // Cart state initialized from localStorage
   const [cart, setCart] = useState<{ product: Product; quantity: number }[]>(() => {
@@ -106,34 +125,17 @@ export default function App() {
 
   // Set up real-time connection and active synchronization subscription
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
     let unsubscribeBanners: (() => void) | undefined;
 
     try {
-      unsubscribe = subscribeToProducts((prodList) => {
-        // If query succeeded but returned 0 items, we can also fall back to default products so the page is populated
-        if (!prodList || prodList.length === 0) {
-          setProducts(FALLBACK_PRODUCTS);
-        } else {
-          setProducts(prodList);
-        }
-        setIsLoading(false);
-      }, (error) => {
-        console.error('Real-time sync error:', error);
-        setFirebaseError(error?.message || String(error));
-        setProducts(FALLBACK_PRODUCTS);
-        setIsLoading(false);
-      });
-    } catch (error: any) {
-      console.error('Failed to subscribe to products:', error);
-      setFirebaseError(error?.message || String(error));
-      setProducts(FALLBACK_PRODUCTS);
-      setIsLoading(false);
-    }
-
-    try {
       unsubscribeBanners = subscribeToBanners((bannerSettings) => {
-        setSettings(bannerSettings || DEFAULT_SETTINGS);
+        const finalSettings = bannerSettings || DEFAULT_SETTINGS;
+        setSettings(finalSettings);
+        try {
+          localStorage.setItem('riya_cosmetics_settings_cache', JSON.stringify(finalSettings));
+        } catch (e) {
+          console.error('Failed to cache settings:', e);
+        }
       }, (error) => {
         console.error('Banner sync error:', error);
         setFirebaseError(error?.message || String(error));
@@ -146,7 +148,6 @@ export default function App() {
     }
 
     return () => {
-      unsubscribe?.();
       unsubscribeBanners?.();
     };
   }, []);

@@ -152,7 +152,7 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
       </div>
 
       {/* Lower Text & Price Section */}
-      <div className="p-3 md:p-3.5 flex flex-col flex-grow justify-between min-h-0 md:min-h-[145px] bg-white text-left font-sans">
+      <div className="p-2.5 sm:p-3 md:p-3.5 flex flex-col flex-grow justify-between min-h-0 md:min-h-[145px] bg-white text-left font-sans">
         <div className="space-y-0.5 mb-1">
           {/* Category Line */}
           <div className="truncate">
@@ -168,20 +168,20 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
 
           {/* Quantity Badge Line */}
           {getQtyAndSpecs() && (
-            <div className="text-[10px] sm:text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap mb-1">
+            <div className="text-[10px] sm:text-xs text-[var(--theme-text-muted)] font-medium truncate block mb-1">
               {getQtyAndSpecs()}
             </div>
           )}
         </div>
 
         {/* Footer Panel (Prices) */}
-        <div className="mt-auto pt-1.5 flex items-center justify-between gap-2 border-t border-[var(--theme-border)]/40">
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-lg md:text-xl font-bold text-[var(--theme-text-primary)] tracking-tight">
+        <div className="mt-auto pt-1.5 flex items-center justify-between gap-1 xs:gap-2 border-t border-[var(--theme-border)]/40">
+          <div className="flex items-baseline gap-1 flex-wrap min-w-0">
+            <span className="text-[15px] sm:text-lg md:text-xl font-bold text-[var(--theme-text-primary)] tracking-tight truncate">
               ₹{spVal.toLocaleString('en-IN')}
             </span>
             {discountPercent > 0 && (
-              <span className="text-xs text-[var(--theme-text-muted)] line-through decoration-red-500/30">
+              <span className="text-[10px] sm:text-xs text-[var(--theme-text-muted)] line-through decoration-red-500/30 truncate">
                 ₹{mrpVal.toLocaleString('en-IN')}
               </span>
             )}
@@ -197,13 +197,13 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
                   onAddToCart(product, e);
                 }
               }}
-              className={`px-2.5 py-1.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-1 rounded-none cursor-pointer ${
+              className={`px-1.5 py-1 sm:px-2.5 sm:py-1.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-0.5 sm:gap-1 rounded-none cursor-pointer shrink-0 ${
                 product.inStock !== false
                   ? 'bg-[#ff0052] border-[#ff0052] text-white hover:bg-stone-900 hover:border-stone-900'
                   : 'bg-stone-50 border-stone-200 text-stone-400 cursor-not-allowed'
               }`}
             >
-              <Plus className="w-3 h-3 shrink-0" />
+              <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
               <span className="hidden sm:inline">
                 {product.inStock !== false ? 'Add to Cart' : 'Out of Stock'}
               </span>
@@ -218,7 +218,7 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
                 e.stopPropagation();
                 onViewDetails(product);
               }}
-              className="text-[10px] tracking-wider text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 cursor-pointer"
+              className="text-[9px] sm:text-[10px] tracking-wider text-[var(--theme-accent)] hover:text-[var(--theme-text-primary)] uppercase font-bold transition-colors duration-300 flex items-center gap-0.5 cursor-pointer shrink-0"
             >
               Details 
               <span className="transform translate-x-0 group-hover:translate-x-0.5 transition-transform duration-300">→</span>
