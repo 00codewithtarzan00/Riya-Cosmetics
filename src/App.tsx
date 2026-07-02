@@ -70,6 +70,29 @@ export default function App() {
     localStorage.setItem('riya_cosmetics_cart', JSON.stringify(cart));
   }, [cart]);
 
+  // Wishlist state initialized from localStorage
+  const [wishlist, setWishlist] = useState<(string | number)[]>(() => {
+    try {
+      const saved = localStorage.getItem('riya_cosmetics_wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Synchronize wishlist with localStorage
+  useEffect(() => {
+    localStorage.setItem('riya_cosmetics_wishlist', JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  const handleToggleWishlist = (productId: string | number) => {
+    setWishlist((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
   // Listen to Google Authentication State Changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -243,6 +266,7 @@ export default function App() {
           onLogin={handleLogin}
           onLogout={handleLogout}
           onOpenMyOrders={() => setIsMyOrdersOpen(true)}
+          wishlistCount={wishlist.length}
         />
       )}
 
@@ -265,6 +289,10 @@ export default function App() {
           firebaseError={firebaseError}
           authError={authError}
           setAuthError={setAuthError}
+          wishlist={wishlist}
+          onToggleWishlist={handleToggleWishlist}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
         />
       ) : currentView === 'invoice' ? (
         /* Digital Printable Invoice and Billing screen */

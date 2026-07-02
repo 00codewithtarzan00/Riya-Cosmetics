@@ -1,4 +1,4 @@
-import {Compass, Shield, ArrowLeft, Layers, ShoppingBag} from 'lucide-react';
+import {Compass, Shield, ArrowLeft, Layers, ShoppingBag, Heart} from 'lucide-react';
 
 interface NavbarProps {
   currentView: 'catalog' | 'admin' | 'invoice';
@@ -12,6 +12,7 @@ interface NavbarProps {
   onLogin?: () => void;
   onLogout?: () => void;
   onOpenMyOrders?: () => void;
+  wishlistCount?: number;
 }
 
 export default function Navbar({
@@ -26,6 +27,7 @@ export default function Navbar({
   onLogin,
   onLogout,
   onOpenMyOrders,
+  wishlistCount = 0,
 }: NavbarProps) {
 
   return (
@@ -58,7 +60,31 @@ export default function Navbar({
         {/* Action Button: Return to Catalog & Customer Auth Status */}
         <div className="flex items-center gap-2 xs:gap-3 md:gap-4 shrink-0">
           
-
+          {/* My Favorites Button */}
+          {currentView === 'catalog' && (
+            <button
+              id="navbar-favorites-btn"
+              onClick={() => {
+                setSelectedCategory('Favorites');
+                onNavigateToCatalog();
+              }}
+              className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 border transition-all duration-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer ${
+                selectedCategory === 'Favorites'
+                  ? 'bg-rose-50 border-[#ff0052] text-[#ff0052]'
+                  : 'bg-white border-stone-200 hover:border-[#ff0052] text-stone-700 hover:text-[#ff0052]'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${selectedCategory === 'Favorites' ? 'fill-[#ff0052] text-[#ff0052]' : 'text-stone-500 hover:text-[#ff0052]'}`} />
+              <span className="hidden md:inline">My Favorites</span>
+              {wishlistCount > 0 && (
+                <span className={`font-mono text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
+                  selectedCategory === 'Favorites' ? 'bg-[#ff0052] text-white' : 'bg-stone-100 text-stone-800'
+                }`}>
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* User Auth Info or Login button */}
           {currentView === 'catalog' && (

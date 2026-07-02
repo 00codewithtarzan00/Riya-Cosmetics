@@ -1,4 +1,4 @@
-import {Eye, Plus, ShoppingBag} from 'lucide-react';
+import {Eye, Plus, ShoppingBag, Heart} from 'lucide-react';
 import {useState, useEffect, useRef} from 'react';
 
 export interface Product {
@@ -22,6 +22,8 @@ interface ProductCardProps {
   product: Product;
   onViewDetails: (product: Product) => void;
   onAddToCart?: (product: Product, e: React.MouseEvent) => void;
+  isWishlisted?: boolean;
+  onToggleWishlist?: (productId: string | number) => void;
 }
 
 export function formatCustomQuantity(qtyVal: number | undefined, qtyUnit: string | undefined): string {
@@ -47,7 +49,13 @@ export function formatCustomQuantity(qtyVal: number | undefined, qtyUnit: string
   return `${qtyVal} ${formattedUnit}`;
 }
 
-export default function ProductCard({product, onViewDetails, onAddToCart}: ProductCardProps) {
+export default function ProductCard({
+  product,
+  onViewDetails,
+  onAddToCart,
+  isWishlisted = false,
+  onToggleWishlist,
+}: ProductCardProps) {
   const mrpVal = product.mrp || product.priceInINR || 0;
   const spVal = product.sp || product.priceInINR || 0;
   const discountPercent = (mrpVal > 0 && mrpVal > spVal) ? Math.round(((mrpVal - spVal) / mrpVal) * 100) : 0;
@@ -149,6 +157,19 @@ export default function ProductCard({product, onViewDetails, onAddToCart}: Produ
             Quick View
           </button>
         </div>
+
+        {/* Wishlist Heart Button */}
+        <button
+          id={`wishlist-toggle-${product.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleWishlist?.(product.id);
+          }}
+          className="absolute bottom-2 right-2 z-20 p-1.5 rounded-full bg-white/95 border border-stone-200/80 shadow-xs hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center"
+          title={isWishlisted ? "Remove from Favorites" : "Add to Favorites"}
+        >
+          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-[#ff0052] text-[#ff0052]' : 'text-stone-500 hover:text-[#ff0052]'}`} />
+        </button>
       </div>
 
       {/* Lower Text & Price Section */}

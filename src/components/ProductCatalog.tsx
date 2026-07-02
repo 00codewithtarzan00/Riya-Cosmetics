@@ -57,10 +57,16 @@ interface ProductCatalogProps {
   firebaseError?: string | null;
   authError?: string | null;
   setAuthError?: (err: string | null) => void;
+  wishlist: (string | number)[];
+  onToggleWishlist: (productId: string | number) => void;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
 }
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
+    case 'Favorites':
+      return <Heart className="w-4 h-4 shadow-xs text-rose-500 fill-rose-500 animate-pulse" />;
     case 'Makeup':
       return <Palette className="w-4 h-4 shadow-xs" />;
     case 'Skin Care':
@@ -97,9 +103,12 @@ export default function ProductCatalog({
   onLogin,
   firebaseError = null,
   authError = null,
-  setAuthError
+  setAuthError,
+  wishlist,
+  onToggleWishlist,
+  selectedCategory,
+  setSelectedCategory,
 }: ProductCatalogProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('default');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -300,14 +309,16 @@ export default function ProductCatalog({
     window.open(whatsappUrl, '_blank');
   };
 
-  const categories = ['All', 'Makeup', 'Skin Care', 'Hair Care', 'Body Care', 'Undergarments', 'Baby Care', 'Bangles & Ornaments', 'Others'];
+  const categories = ['All', 'Favorites', 'Makeup', 'Skin Care', 'Hair Care', 'Body Care', 'Undergarments', 'Baby Care', 'Bangles & Ornaments', 'Others'];
 
   // Handle product sorting and filtering
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
 
     // Category Filter
-    if (selectedCategory !== 'All') {
+    if (selectedCategory === 'Favorites') {
+      result = result.filter(p => wishlist.includes(p.id));
+    } else if (selectedCategory !== 'All') {
       result = result.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
     }
 
@@ -756,6 +767,8 @@ export default function ProductCatalog({
                   product={p} 
                   onViewDetails={setSelectedProduct} 
                   onAddToCart={onAddToCart}
+                  isWishlisted={wishlist.includes(p.id)}
+                  onToggleWishlist={onToggleWishlist}
                 />
               ))}
 
@@ -813,11 +826,19 @@ export default function ProductCatalog({
             )}
           </div>
         ) : (
-          <div className="py-12 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto">
-            <Sparkles className="w-10 h-10 text-stone-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-[var(--theme-text-primary)] mb-2">No items match your criteria</h3>
+          <div className="py-12 text-center border border-[var(--theme-border)] bg-white max-w-xl mx-auto px-6">
+            {selectedCategory === 'Favorites' ? (
+              <Heart className="w-10 h-10 text-rose-300 mx-auto mb-4" />
+            ) : (
+              <Sparkles className="w-10 h-10 text-stone-300 mx-auto mb-4" />
+            )}
+            <h3 className="text-lg font-medium text-[var(--theme-text-primary)] mb-2">
+              {selectedCategory === 'Favorites' ? 'Your Favorites list is empty' : 'No items match your criteria'}
+            </h3>
             <p className="text-xs text-[var(--theme-text-secondary)] px-6 font-medium">
-              We couldn't find any premium formulas matches. Try resetting your search term or filtering categories.
+              {selectedCategory === 'Favorites' 
+                ? 'Save your favorite cosmetics formulas by tapping the heart icon on any product card.'
+                : "We couldn't find any premium formulas matches. Try resetting your search term or filtering categories."}
             </p>
             <button
               onClick={() => {
@@ -827,7 +848,7 @@ export default function ProductCatalog({
               }}
               className="mt-6 px-5 py-2 bg-[var(--theme-accent)] text-white font-semibold text-xs tracking-wider uppercase hover:bg-[var(--theme-accent-hover)] transition-colors cursor-pointer"
             >
-              Reset Filters
+              {selectedCategory === 'Favorites' ? 'Explore Catalog' : 'Reset Filters'}
             </button>
           </div>
         )}
