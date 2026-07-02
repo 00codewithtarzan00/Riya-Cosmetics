@@ -241,6 +241,7 @@ export default function ProductCatalog({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerAddress: customerAddress.trim(),
+        customerEmail: user ? user.email : null,
         items: orderItems,
         totalAmount: cartSubtotal,
         status: 'Pending',

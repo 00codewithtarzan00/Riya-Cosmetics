@@ -4,7 +4,7 @@ import {
   Lock, Eye, EyeOff, LayoutDashboard, Plus, Pencil, Trash2, 
   Settings, LogOut, Check, Info, Coins, BarChart3, Tag, Package,
   Upload, Image as ImageIcon, X, Sliders, Play, Trash, FileText, CheckCircle,
-  Brain, Cpu, Loader2, Sparkles, Zap, Phone, MapPin, MessageSquare, ExternalLink, Clock, Truck, User
+  Brain, Cpu, Loader2, Sparkles, Zap, Phone, MapPin, MessageSquare, ExternalLink, Clock, Truck, User, Mail
 } from 'lucide-react';
 import { SettingsConfig, dbUpdateBanners, subscribeToOrders, dbUpdateOrderStatus, Order, dbDeleteOrder, dbDeleteOrdersBulk } from '../firebaseService';
 
@@ -127,7 +127,7 @@ export default function AdminPortal({
         });
         setOrders(sorted);
         setIsOrdersLoading(false);
-      }, (error) => {
+      }, null, (error) => {
         console.error('Failed to subscribe to orders:', error);
         setIsOrdersLoading(false);
       });
@@ -1867,6 +1867,17 @@ export default function AdminPortal({
                                 <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
                                 <div className="font-mono">
                                   <a href={`tel:${order.customerPhone}`} className="hover:underline">{order.customerPhone}</a>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start gap-2 text-stone-800">
+                                <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+                                <div>
+                                  {order.customerEmail ? (
+                                    <a href={`mailto:${order.customerEmail}`} className="hover:underline font-mono text-stone-600">{order.customerEmail}</a>
+                                  ) : (
+                                    <span className="font-mono text-stone-400 italic">No email provided</span>
+                                  )}
                                 </div>
                               </div>
 

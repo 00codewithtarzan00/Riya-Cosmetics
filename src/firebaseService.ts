@@ -352,6 +352,7 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  customerEmail?: string | null;
   items: OrderItem[];
   totalAmount: number;
   status: 'Pending' | 'Processing' | 'Dispatched' | 'Delivered' | 'Cancelled';
@@ -384,6 +385,7 @@ export function subscribeToOrders(
             customerName: data.customerName || '',
             customerPhone: data.customerPhone || '',
             customerAddress: data.customerAddress || '',
+            customerEmail: data.customerEmail || null,
             items: Array.isArray(data.items) ? data.items : [],
             totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : Number(data.totalAmount || 0),
             status: data.status || 'Pending',
@@ -422,6 +424,7 @@ export async function dbAddOrder(newOrder: Omit<Order, 'id'>): Promise<string> {
       customerName: newOrder.customerName,
       customerPhone: newOrder.customerPhone,
       customerAddress: newOrder.customerAddress,
+      customerEmail: newOrder.customerEmail || null,
       items: newOrder.items,
       totalAmount: Number(newOrder.totalAmount),
       status: newOrder.status,
@@ -459,6 +462,7 @@ export async function dbGetOrder(orderId: string): Promise<Order | null> {
         customerName: data.customerName || '',
         customerPhone: data.customerPhone || '',
         customerAddress: data.customerAddress || '',
+        customerEmail: data.customerEmail || null,
         items: Array.isArray(data.items) ? data.items : [],
         totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : Number(data.totalAmount || 0),
         status: data.status || 'Pending',
